@@ -31,12 +31,14 @@
     "@angular/ssr": "^20.1.4",
     "express": "^5.1.0",
     "rxjs": "~7.8.0",
+    "tar": "^7.4.3",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
     "@angular/build": "^20.1.4",
     "@angular/cli": "^20.1.4",
     "@angular/compiler-cli": "^20.1.0",
+    "@tailwindcss/postcss": "^4.1.11",
     "@types/express": "^5.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.17.19",

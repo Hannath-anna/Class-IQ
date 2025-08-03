@@ -1,0 +1,90 @@
+<section class="w-screen h-screen min-h-[680px] mx-auto max-w-[2000px] p-[2rem] overflow-scroll">
+    <button class="fixed p-6 rounded-full bg-black text-white text-xl right-20 to-20 transition-all active:scale-95 hover:cursor-pointer" (click)="addClicked()">Add</button>
+    <div class="w-full gap-5 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div *ngFor="let course of courses" class="card w-full border/5 bg-black/5 rounded-2xl p-5 flex flex-col gap-5">
+            <img [src]="backendUrl+course?.image_url" alt="" class="aspect-square rounded-md w-full object-cover">
+            <h2 class="text-3xl font-bold">{{course?.course_name}}</h2>
+            <p>{{course?.duration_months}} Months</p>
+            <p class="text-black/70">{{course?.description}}</p>
+        </div>
+    </div>
+</section>
+
+<section *ngIf="openModale" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center overflow-auto p-20">
+    <div class="p-10 bg-white rounded-2xl w-full max-w-2xl relative">
+
+        <!-- Close Button -->
+        <button (click)="closeModal()" class="absolute top-4 right-4 text-2xl">×</button>
+        
+        <h2 class="text-2xl font-bold mb-6">Add New Course</h2>
+
+        <!-- The Form -->
+        <form [formGroup]="courseForm" (ngSubmit)="onSubmit()" novalidate>
+            <!-- Course Name -->
+            <div class="mb-4">
+                <label for="course_name" class="block mb-1">Course Name</label>
+                <input type="text" id="course_name" formControlName="course_name" class="w-full p-2 border rounded">
+                <div *ngIf="courseForm.get('course_name')?.invalid && courseForm.get('course_name')?.touched" class="text-red-500 text-sm mt-1">
+                    Course name is required.
+                </div>
+            </div>
+
+            <!-- Image Upload -->
+            <div class="mb-4">
+                <label for="courseImage" class="block mb-1">Course Image</label>
+                <input type="file" id="courseImage" (change)="onFileChange($event)" class="w-full p-2 border rounded">
+                <div *ngIf="courseForm.get('courseImage')?.invalid && courseForm.get('courseImage')?.touched" class="text-red-500 text-sm mt-1">
+                    An image is required.
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-4">
+                <label for="description" class="block mb-1">Description</label>
+                <textarea id="description" formControlName="description" class="w-full p-2 border rounded" rows="4"></textarea>
+                 <div *ngIf="courseForm.get('description')?.invalid && courseForm.get('description')?.touched" class="text-red-500 text-sm mt-1">
+                    Description is required.
+                </div>
+            </div>
+            
+            <!-- Duration & Fee -->
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="duration_months" class="block mb-1">Duration (Months)</label>
+                    <input type="number" id="duration_months" formControlName="duration_months" class="w-full p-2 border rounded">
+                    <div *ngIf="courseForm.get('duration_months')?.invalid && courseForm.get('duration_months')?.touched" class="text-red-500 text-sm mt-1">
+                        A valid duration is required.
+                    </div>
+                </div>
+                <div>
+                    <label for="fee" class="block mb-1">Fee ($)</label>
+                    <input type="number" id="fee" formControlName="fee" class="w-full p-2 border rounded">
+                    <div *ngIf="courseForm.get('fee')?.invalid && courseForm.get('fee')?.touched" class="text-red-500 text-sm mt-1">
+                        A valid fee is required.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Steps -->
+            <h3 class="font-semibold mb-2">Course Steps</h3>
+            <div class="mb-4">
+                <label for="course_steps_1" class="block mb-1">Months 0-6</label>
+                <input type="text" id="course_steps_1" formControlName="course_steps_1" class="w-full p-2 border rounded">
+            </div>
+            <div class="mb-4">
+                <label for="course_steps_2" class="block mb-1">Months 6-12</label>
+                <input type="text" id="course_steps_2" formControlName="course_steps_2" class="w-full p-2 border rounded">
+            </div>
+            <div class="mb-4">
+                <label for="course_steps_3" class="block mb-1">Months 12-18</label>
+                <input type="text" id="course_steps_3" formControlName="course_steps_3" class="w-full p-2 border rounded">
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" [disabled]="courseForm.invalid" 
+                    class="w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400">
+                Add Course
+            </button>
+        </form>
+    </div>
+</section>
