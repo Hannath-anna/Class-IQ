@@ -56,3 +56,20 @@ exports.create = (req, res) => {
         else res.status(201).send(data);
     });
 };
+
+exports.findOne = (req, res) => {
+    const courseId = req.query.id;
+    if (!courseId) {
+        return res.status(400).send({ message: "Course ID must be provided in the query." });
+    }
+
+    Course.findById(courseId, (err, data) => {
+        if (err) {
+            if (err.kind === "not_found") {
+                res.status(404).send({ message: `Not found Course with id ${courseId}.` });
+            } else {
+                res.status(500).send({ message: "Error retrieving Course with id " + courseId });
+            }
+        } else res.send(data);
+    });
+};
