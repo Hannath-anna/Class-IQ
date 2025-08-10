@@ -27,3 +27,32 @@ exports.findAll = (req, res) => {
     });
 };
 
+exports.create = (req, res) => {
+    if (!req.body) {
+        res.status(400).send({ message: "Content can not be empty!" });
+        return;
+    }
+
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
+    // Create a Course object from request body and file path
+    const course = new Course({
+        course_name: req.body.course_name,
+        description: req.body.description,
+        sub_description: req.body.sub_description,
+        duration_text: req.body.duration_text,
+        fee: req.body.fee,
+        course_steps: JSON.parse(req.body.course_steps), 
+        image_url: imageUrl,
+        isBlocked: req.body.isBlocked
+    });
+
+    // Save Course in the database
+    Course.create(course, (err, data) => {
+        if (err)
+            res.status(500).send({
+                message: err.message || "An error occurred while creating the Course."
+            });
+        else res.status(201).send(data);
+    });
+};
