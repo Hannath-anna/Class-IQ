@@ -1,16 +1,18 @@
 <section class="w-screen h-screen min-h-[680px] mx-auto max-w-[2000px] p-[2rem] overflow-scroll">
-    <button class="fixed p-6 rounded-full bg-black text-white text-xl right-20 to-20 transition-all active:scale-95 hover:cursor-pointer" (click)="addClicked()">Add</button>
-    <div class="w-full gap-5 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <button class="fixed z-[19] p-6 button rounded-full bg-black text-white text-xl right-20 to-20 transition-all active:scale-95 hover:cursor-pointer" (click)="addClicked()">Add</button>
+    <div *ngIf="loadingCourse" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+    <div *ngIf="!loadingCourse" class="w-full gap-5 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <div *ngFor="let course of courses" class="card w-full relative border/5 bg-black/5 rounded-2xl p-5 flex flex-col gap-5">
             <button 
-                    (click)="toggleBlockStatus(course)"
-                    [ngClass]="{
-                        'bg-green-500 hover:bg-green-600': !course.isBlocked,
-                        'bg-red-500 hover:bg-red-600': course.isBlocked
-                    }"
-                    class="flex-1 text-white py-2 px-5 rounded-lg transition-all absolute top-4 right-4">
-                    {{ course.isBlocked ? 'Blocked' : 'Active' }}
-                </button>
+                [ngClass]="{
+                    'bg-green-500': !course.isBlocked,
+                    'bg-red-500': course.isBlocked
+                }"
+                class="flex-1 text-white py-2 px-5 rounded-lg transition-all absolute top-4 right-4">
+                {{ course.isBlocked ? 'Blocked' : 'Active' }}
+            </button>
 
             <img [src]="backendUrl+course?.image_url" alt="" class="aspect-square rounded-md w-full object-cover">
             <h2 class="text-3xl font-bold">{{course?.course_name}}</h2>
@@ -18,20 +20,24 @@
             <p class="text-black/70">{{course?.description}}</p>
 
             <div class="flex gap-3 justify-between">
-                <button (click)="editClicked(course)" class="mt-auto flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-all">
+                <button [disabled]="deletingCourseId === course.id" (click)="editClicked(course)" class="mt-auto button flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-all">
                     Edit
                 </button>
                 <button 
                     (click)="deleteClicked(course)"
-                    class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-800 transition-all">
-                    Delete
+                    [disabled]="deletingCourseId === course.id"
+                    class="flex-1 button flex items-center justify-center bg-red-600 text-white py-2 rounded-lg hover:bg-red-800 transition-all">
+                    <div *ngIf="deletingCourseId === course.id; else normalText" class="spinner2"></div>
+                    <ng-template #normalText>
+                        Delete
+                    </ng-template>
                 </button>
             </div>
         </div>
     </div>
 </section>
 
-<section *ngIf="openModale" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start my-auto justify-center overflow-auto p-20">
+<section *ngIf="openModale" class="fixed  z-[20] inset-0 bg-black/60 backdrop-blur-sm flex items-start my-auto justify-center overflow-auto p-20">
     <div class="p-10 bg-white rounded-2xl w-full max-w-2xl relative overflow-auto">
 
         <!-- Close Button -->
@@ -94,7 +100,7 @@
                         *ngIf="courseSteps.length > 1"
                         (click)="removeStep(i)" 
                         type="button" 
-                        class="absolute top-2 right-2 text-red-500 font-bold text-xl">
+                        class="absolute button top-2 right-2 text-red-500 font-bold text-xl">
                         ×
                     </button>
 
@@ -129,7 +135,7 @@
             </div>
 
             <!-- Button to add a new step -->
-            <button (click)="addStep()" type="button" class="mb-5 border border-blue-600 hover:border-blue-800 py-1 px-5 rounded-full button transition-all text-blue-600 hover:text-blue-800 font-semibold">
+            <button (click)="addStep()" type="button" class="mb-5 button border border-blue-600 hover:border-blue-800 py-1 px-5 rounded-full button transition-all text-blue-600 hover:text-blue-800 font-semibold">
                 + Add Another Step
             </button>
 
@@ -139,9 +145,13 @@
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" [disabled]="courseForm.invalid" 
-                    class="w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400">
-                {{ isEditMode ? 'Save Changes' : 'Add Course' }}
+            <button [disabled]="isSubmitting" type="submit" [disabled]="courseForm.invalid" 
+                    class="w-full button p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400">
+                
+                <div *ngIf="isSubmitting else normalText" class="spinner2 m-auto"></div>
+                <ng-template #normalText>
+                    {{ isEditMode ? 'Save Changes' : 'Add Course' }}
+                </ng-template>
             </button>
         </form>
     </div>

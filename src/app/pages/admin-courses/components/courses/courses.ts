@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core'; // Import OnInit
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BackendService } from '../../../../../core/services/backend.service';
 import { environments } from '../../../../../../environments/environment';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-courses',
@@ -19,7 +20,7 @@ export class Courses implements OnInit {
   selectedFile: File | null = null;
   openModale = false;
 
-  constructor(private backendService: BackendService, private fb: FormBuilder) {
+  constructor(private backendService: BackendService, private fb: FormBuilder, private toastr: ToastrService) {
     this.courseForm = this.fb.group({
       course_name: ['', Validators.required],
       description: ['', Validators.required],
@@ -56,10 +57,12 @@ export class Courses implements OnInit {
     this.courseSteps.removeAt(index);
   }
 
+  loadingCourse = false
   loadCourses() {
+    this.loadingCourse = true
     this.backendService.getCourses().subscribe({
-      next: (res) => { this.courses = res.reverse(); },
-      error: (err) => { console.error(err); }
+      next: (res) => { this.courses = res; this.loadingCourse = false},
+      error: (err) => { this.toastr.error('Failed to load courses. Please check your connection.', 'Load Error'); this.loadingCourse = false}
     });
   }
 
@@ -80,17 +83,15 @@ export class Courses implements OnInit {
   this.editingCourseId = course.id;
   this.openModale = true;
 
-  // Pre-fill top-level form fields (this part is likely fine)
   this.courseForm.patchValue({
     course_name: course.course_name,
     description: course.description,
     sub_description: course.sub_description,
     duration_text: course.duration_text,
     fee: course.fee,
-    isBlocked: !!course.isBlocked, // Ensure it's a true boolean
+    isBlocked: !!course.isBlocked,
   });
 
-  // === DEBUGGING AND FIXING THE FORM ARRAY ===
   this.courseSteps.clear();
   const steps = typeof course.course_steps === 'string' 
                 ? JSON.parse(course.course_steps) 
@@ -98,18 +99,15 @@ export class Courses implements OnInit {
 
   if (steps && Array.isArray(steps) && steps.length > 0) {
     steps.forEach((stepData: any) => {
-      // ** THE CRITICAL DEBUGGING STEP **
-      // This will show you exactly what you're trying to patch.
       console.log('Attempting to patch step with this data:', stepData);
       
       const stepGroup = this.createStep();
-      stepGroup.patchValue(stepData); // patchValue is case-sensitive!
+      stepGroup.patchValue(stepData); 
       this.courseSteps.push(stepGroup);
     });
   } else {
     this.addStep();
   }
-  // === END OF DEBUGGING SECTION ===
 
   this.selectedFile = null;
   this.courseForm.get('courseImage')?.setValue(null);
@@ -123,10 +121,9 @@ export class Courses implements OnInit {
   // Single, effective reset call with default values
   this.courseForm.reset({
     isBlocked: false,
-    unit: 'Months' // It's good practice to reset select dropdowns too
+    unit: 'Months' 
   });
 
-  // Clear and re-initialize the course steps
   this.courseSteps.clear();
   this.addStep();
   
@@ -141,33 +138,46 @@ export class Courses implements OnInit {
     }
   }
 
+  isBlocking = false
   toggleBlockStatus(course: any) {
+    this.isBlocking = true
     const newStatus = !course.isBlocked;
+    const action = newStatus ? 'block' : 'unblock';
     this.backendService.updateCourseBlockStatus(course.id, newStatus).subscribe({
       next: (response) => {
-        console.log(response.message);
-        course.isBlocked = newStatus;
+        this.toastr.success(`Course "${course.course_name}" was ${action.toLowerCase()}ed!`, 'Update Successful');
+        
+        // this.loadCourses(); 
+        this.isBlocking = false
       },
-      error: (err) => console.error('Failed to update block status:', err)
+      error: (err) => {this.toastr.error(`Failed to ${action.toLowerCase()} course. Please try again.`, 'Update Failed'); this.isBlocking = false}
     });
   }
   
+  deletingCourseId: number | null = null;
   deleteClicked(course: any) {
     const confirmation = window.confirm(`Are you sure you want to delete "${course.course_name}"?`);
     if (confirmation) {
+      this.deletingCourseId = course.id;
       this.backendService.deleteCourse(course.id).subscribe({
         next: (response) => {
-          console.log(response.message);
-          this.courses = this.courses.filter((c: any) => c.id !== course.id);
+          this.toastr.success(`Course "${course.course_name}" was deleted successfully.`, 'Delete Successful');
+          this.deletingCourseId = null;
+          setTimeout(() => {
+            // this.loadCourses(); 
+            // this.courses = this.courses.filter((c: any) => c.id !== course.id)
+            window.location.reload()
+          },10);
         },
-        error: (err) => console.error('Failed to delete course:', err)
+        error: (err) => {this.toastr.error('Failed to delete course. Please try again.', 'Delete Failed'); this.deletingCourseId = null;}
       });
     }
   }
 
+  isSubmitting = false
   onSubmit() {
     if (this.courseForm.invalid || (!this.isEditMode && !this.selectedFile)) {
-      console.error("Form is invalid or file not selected for new course.");
+      this.toastr.error('Please fill out all required fields and select an image.', 'Invalid Form');
       this.courseForm.markAllAsTouched();
       return;
     }
@@ -188,14 +198,30 @@ export class Courses implements OnInit {
     });
 
     if (this.isEditMode) {
+      this.isSubmitting = true
       this.backendService.updateCourse(this.editingCourseId!, formData).subscribe({
-        next: () => { this.loadCourses(); this.closeModal(); },
-        error: (err) => console.error('Error updating course:', err)
+        next: (res) => { 
+          this.courses = this.courses.map((course: any) =>
+            course.id === this.editingCourseId
+              ? { ...course, ...this.courseForm.value }
+              : course
+          );
+          this.closeModal(); 
+          this.toastr.success('Course updated successfully!', 'Saved'); 
+          this.isSubmitting = false
+        },
+        error: (err) => {this.toastr.error('Failed to update course. Please try again.', 'Save Failed'); this.isSubmitting = false}
       });
     } else {
+      this.isSubmitting = true
       this.backendService.addCourse(formData).subscribe({
-        next: () => { this.loadCourses(); this.closeModal(); },
-        error: (err) => console.error('Error adding course:', err)
+        next: (res) => { 
+          this.courses.push(res)
+          this.closeModal(); 
+          this.toastr.success('Course added successfully!', 'Created');
+          this.isSubmitting = false
+        },
+        error: (err) => {console.error('Error adding course:', err); this.isSubmitting = false}
       });
     }
   }
