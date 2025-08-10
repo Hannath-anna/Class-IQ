@@ -2,33 +2,37 @@
     <button class="fixed p-6 rounded-full bg-black text-white text-xl right-20 to-20 transition-all active:scale-95 hover:cursor-pointer" (click)="addClicked()">Add</button>
     <div class="w-full gap-5 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <div *ngFor="let course of courses" class="card w-full relative border/5 bg-black/5 rounded-2xl p-5 flex flex-col gap-5">
-            <div *ngIf="course.isBlocked" class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-5 py-2 rounded-full">
-                BLOCKED
-            </div>
+            <button 
+                    (click)="toggleBlockStatus(course)"
+                    [ngClass]="{
+                        'bg-green-500 hover:bg-green-600': !course.isBlocked,
+                        'bg-red-500 hover:bg-red-600': course.isBlocked
+                    }"
+                    class="flex-1 text-white py-2 px-5 rounded-lg transition-all absolute top-4 right-4">
+                    {{ course.isBlocked ? 'Blocked' : 'Active' }}
+                </button>
 
             <img [src]="backendUrl+course?.image_url" alt="" class="aspect-square rounded-md w-full object-cover">
             <h2 class="text-3xl font-bold">{{course?.course_name}}</h2>
             <p>{{course?.duration_text}}</p>
             <p class="text-black/70">{{course?.description}}</p>
 
-            <button (click)="editClicked(course)" class="mt-auto bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-all">
-                Edit
-            </button>
-            <button 
-                (click)="toggleBlockStatus(course)"
-                [ngClass]="{
-                    'bg-gray-700 hover:bg-gray-800': !course.isBlocked,
-                    'bg-red-600 hover:bg-red-700': course.isBlocked
-                }"
-                class="flex-1 text-white py-2 rounded-lg transition-all">
-                {{ course.isBlocked ? 'Unblock' : 'Block' }}
-            </button>
+            <div class="flex gap-3 justify-between">
+                <button (click)="editClicked(course)" class="mt-auto flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-all">
+                    Edit
+                </button>
+                <button 
+                    (click)="deleteClicked(course)"
+                    class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-800 transition-all">
+                    Delete
+                </button>
+            </div>
         </div>
     </div>
 </section>
 
-<section *ngIf="openModale" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center overflow-auto p-20">
-    <div class="p-10 bg-white rounded-2xl w-full max-w-2xl relative">
+<section *ngIf="openModale" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start my-auto justify-center overflow-auto p-20">
+    <div class="p-10 bg-white rounded-2xl w-full max-w-2xl relative overflow-auto">
 
         <!-- Close Button -->
         <button (click)="closeModal()" class="absolute top-4 right-4 text-3xl">×</button>
