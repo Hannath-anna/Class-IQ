@@ -80,4 +80,20 @@ Course.updateById = (id, course, result) => {
     );
 };
 
+Course.remove = (id, result) => {
+    sql.query("DELETE FROM courses WHERE id = ?", id, (err, res) => {
+        if (err) {
+            console.log("error: ", err);
+            result(err, null);
+            return;
+        }
+        if (res.affectedRows == 0) {
+            // not found Course with the id
+            result({ kind: "not_found" }, null);
+            return;
+        }
+        result(null, res);
+    });
+};
+
 module.exports = Course;

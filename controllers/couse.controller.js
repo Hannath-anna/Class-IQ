@@ -155,3 +155,39 @@ exports.updateBlockStatus = (req, res) => {
         });
     });
 };
+
+exports.delete = (req, res) => {
+    const courseId = req.query.id;
+    if (!courseId) {
+        return res.status(400).send({ message: "Course ID must be provided in the query." });
+    }
+
+    // First, find the course to get the image URL for deletion
+    Course.findById(courseId, (err, course) => {
+        if (err) {
+            if (err.kind === "not_found") {
+                res.status(404).send({ message: `Not found Course with id ${courseId}.` });
+            } else {
+                res.status(500).send({ message: "Error retrieving Course with id " + courseId });
+            }
+            return;
+        }
+
+        // If an image exists, delete it
+        if (course.image_url) {
+            deleteImage(course.image_url);
+        }
+
+        // Now, remove the course from the database
+        Course.remove(courseId, (err, data) => {
+            if (err) {
+                // The "not_found" case is already handled above, but we keep it for safety
+                if (err.kind === "not_found") {
+                    res.status(404).send({ message: `Not found Course with id ${courseId}.` });
+                } else {
+                    res.status(500).send({ message: "Could not delete Course with id " + courseId });
+                }
+            } else res.send({ message: `Course was deleted successfully!` });
+        });
+    });
+};
