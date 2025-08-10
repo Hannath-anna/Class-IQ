@@ -119,3 +119,39 @@ exports.update = (req, res) => {
         });
     });
 };
+
+exports.updateBlockStatus = (req, res) => {
+    // Check if the isBlocked value is provided in the request body
+    if (typeof req.body.isBlocked !== 'boolean') {
+        res.status(400).send({ message: "The 'isBlocked' field must be a boolean." });
+        return;
+    }
+
+    Course.findById(req.query.id, (err, course) => {
+        if (err) {
+            if (err.kind === "not_found") {
+                res.status(404).send({ message: `Not found Course with id ${req.query.id}.` });
+            } else {
+                res.status(500).send({ message: "Error retrieving Course with id " + req.query.id });
+            }
+            return;
+        }
+
+        // Create a new Course object with the updated isBlocked status
+        const updatedCourse = new Course({ ...course, isBlocked: req.body.isBlocked });
+
+        // Call the general updateById function to update the course in the database
+        Course.updateById(req.query.id, updatedCourse, (err, data) => {
+            if (err) {
+                if (err.kind === "not_found") {
+                    res.status(404).send({ message: `Not found Course with id ${req.query.id}.` });
+                } else {
+                    res.status(500).send({ message: "Error updating Course with id " + req.query.id });
+                }
+            } else {
+                const action = req.body.isBlocked ? 'blocked' : 'unblocked';
+                res.send({ message: `Course was ${action} successfully!`, ...data });
+            }
+        });
+    });
+};

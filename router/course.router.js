@@ -6,5 +6,6 @@ router.get("/", courseController.findAll);
 router.post("/", upload, courseController.create);
 router.get("/course", courseController.findOne);
 router.patch("/", upload, courseController.update)
+router.patch("/course", courseController.updateBlockStatus)
 
 module.exports = router;
