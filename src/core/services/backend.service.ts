@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { environments } from "../../../environments/environment"
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable } from "rxjs";
 
 @Injectable({
@@ -16,5 +16,10 @@ export class BackendService {
 
     addCourse(courseData: FormData): Observable<any> {
         return this.http.post(`${this.apiUrl}/courses`, courseData);
+    }
+
+    updateCourse(id: string, formData: FormData): Observable<any> {
+        const params = new HttpParams().set('id', id);
+        return this.http.patch(`${this.apiUrl}/courses`, formData, { params });
     }
 }

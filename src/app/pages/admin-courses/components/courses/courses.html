@@ -1,11 +1,19 @@
 <section class="w-screen h-screen min-h-[680px] mx-auto max-w-[2000px] p-[2rem] overflow-scroll">
     <button class="fixed p-6 rounded-full bg-black text-white text-xl right-20 to-20 transition-all active:scale-95 hover:cursor-pointer" (click)="addClicked()">Add</button>
     <div class="w-full gap-5 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <div *ngFor="let course of courses" class="card w-full border/5 bg-black/5 rounded-2xl p-5 flex flex-col gap-5">
+        <div *ngFor="let course of courses" class="card w-full relative border/5 bg-black/5 rounded-2xl p-5 flex flex-col gap-5">
+            <div *ngIf="course.isBlocked" class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-5 py-2 rounded-full">
+                BLOCKED
+            </div>
+
             <img [src]="backendUrl+course?.image_url" alt="" class="aspect-square rounded-md w-full object-cover">
             <h2 class="text-3xl font-bold">{{course?.course_name}}</h2>
-            <p>{{course?.duration_months}} Months</p>
+            <p>{{course?.duration_text}}</p>
             <p class="text-black/70">{{course?.description}}</p>
+
+            <button (click)="editClicked(course)" class="mt-auto bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-all">
+                Edit
+            </button>
         </div>
     </div>
 </section>
@@ -14,9 +22,9 @@
     <div class="p-10 bg-white rounded-2xl w-full max-w-2xl relative">
 
         <!-- Close Button -->
-        <button (click)="closeModal()" class="absolute top-4 right-4 text-2xl">×</button>
+        <button (click)="closeModal()" class="absolute top-4 right-4 text-3xl">×</button>
         
-        <h2 class="text-2xl font-bold mb-6">Add New Course</h2>
+        <h2 class="text-2xl font-bold mb-6">{{ isEditMode ? 'Edit Course' : 'Add New Course' }}</h2>
 
         <!-- The Form -->
         <form [formGroup]="courseForm" (ngSubmit)="onSubmit()" novalidate>
@@ -41,7 +49,7 @@
             <!-- Description -->
             <div class="mb-4">
                 <label for="description" class="block mb-1">Description</label>
-                <textarea id="description" formControlName="description" class="w-full p-2 border rounded" rows="4"></textarea>
+                <textarea id="description" formControlName="description" class="resize-none w-full p-2 border rounded" rows="4"></textarea>
                  <div *ngIf="courseForm.get('description')?.invalid && courseForm.get('description')?.touched" class="text-red-500 text-sm mt-1">
                     Description is required.
                 </div>
@@ -50,9 +58,9 @@
             <!-- Duration & Fee -->
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                    <label for="duration_months" class="block mb-1">Duration (Months)</label>
-                    <input type="number" id="duration_months" formControlName="duration_months" class="w-full p-2 border rounded">
-                    <div *ngIf="courseForm.get('duration_months')?.invalid && courseForm.get('duration_months')?.touched" class="text-red-500 text-sm mt-1">
+                    <label for="duration_text" class="block mb-1">Course Duration (e.g., "18 Months")</label>
+                    <input type="text" id="duration_text" formControlName="duration_text" class="w-full p-2 border rounded">
+                    <div *ngIf="courseForm.get('duration_text')?.invalid && courseForm.get('duration_text')?.touched" class="text-red-500 text-sm mt-1">
                         A valid duration is required.
                     </div>
                 </div>
@@ -67,23 +75,60 @@
 
             <!-- Course Steps -->
             <h3 class="font-semibold mb-2">Course Steps</h3>
-            <div class="mb-4">
-                <label for="course_steps_1" class="block mb-1">Months 0-6</label>
-                <input type="text" id="course_steps_1" formControlName="course_steps_1" class="w-full p-2 border rounded">
+            <div formArrayName="course_steps">
+                <div *ngFor="let step of courseSteps.controls; let i=index" [formGroupName]="i" class="p-4 border rounded-lg mb-4 relative">
+                    <button 
+                        *ngIf="courseSteps.length > 1"
+                        (click)="removeStep(i)" 
+                        type="button" 
+                        class="absolute top-2 right-2 text-red-500 font-bold text-xl">
+                        ×
+                    </button>
+
+                    <div class="grid grid-cols-5 gap-4">
+                        <!-- Unit (Weeks/Months) -->
+                        <div class="col-span-3">
+                            <label [for]="'unit' + i" class="block mb-1 text-sm">Unit</label>
+                            <select [id]="'unit' + i" formControlName="unit" class="w-full p-2 border rounded bg-white">
+                                <option value="Weeks">Weeks</option>
+                                <option value="Months">Months</option>
+                                <option value="Days">Days</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Duration -->
+                        <div class="col-span-2">
+                            <label [for]="'duration' + i" class="block mb-1 text-sm">Duration</label>
+                            <input type="number" [id]="'duration' + i" formControlName="duration" class="w-full p-2 border rounded">
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mt-2">
+                        <label [for]="'description' + i" class="block mb-1 text-sm">Topics / Description</label>
+                        <textarea [id]="'description' + i" formControlName="description" class="w-full p-2 border resize-none rounded" rows="2"></textarea>
+                        <!-- Example of validation for a field within a FormArray -->
+                        <div *ngIf="step.get('description')?.invalid && step.get('description')?.touched" class="text-red-500 text-sm mt-1">
+                            Description for this step is required.
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="mb-4">
-                <label for="course_steps_2" class="block mb-1">Months 6-12</label>
-                <input type="text" id="course_steps_2" formControlName="course_steps_2" class="w-full p-2 border rounded">
-            </div>
-            <div class="mb-4">
-                <label for="course_steps_3" class="block mb-1">Months 12-18</label>
-                <input type="text" id="course_steps_3" formControlName="course_steps_3" class="w-full p-2 border rounded">
+
+            <!-- Button to add a new step -->
+            <button (click)="addStep()" type="button" class="mb-5 border border-blue-600 hover:border-blue-800 py-1 px-5 rounded-full button transition-all text-blue-600 hover:text-blue-800 font-semibold">
+                + Add Another Step
+            </button>
+
+            <div class="mb-4 flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <input type="checkbox" id="isBlocked" formControlName="isBlocked" class="w-5 h-5 rounded text-blue-600 focus:ring-blue-500">
+                <label for="isBlocked" class="font-medium text-gray-700">Block this course from being visible to students</label>
             </div>
 
             <!-- Submit Button -->
             <button type="submit" [disabled]="courseForm.invalid" 
                     class="w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400">
-                Add Course
+                {{ isEditMode ? 'Save Changes' : 'Add Course' }}
             </button>
         </form>
     </div>
