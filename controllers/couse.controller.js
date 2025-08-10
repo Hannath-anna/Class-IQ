@@ -73,3 +73,49 @@ exports.findOne = (req, res) => {
         } else res.send(data);
     });
 };
+
+exports.update = (req, res) => {
+    const courseId = req.query.id;
+    if (!courseId) {
+        return res.status(400).send({ message: "Course ID must be provided in the query." });
+    }
+    if (!req.body) {
+        res.status(400).send({ message: "Content can not be empty!" });
+        return;
+    }
+
+    Course.findById(courseId, (err, existingCourse) => {
+        if (err) {
+            if (err.kind === "not_found") {
+                res.status(404).send({ message: `Not found Course with id ${courseId}.` });
+            } else {
+                res.status(500).send({ message: "Error retrieving Course with id " + courseId });
+            }
+            return;
+        }
+
+        // Check if a new image is uploaded. If so, delete the old one.
+        if (req.file && existingCourse.image_url) {
+            deleteImage(existingCourse.image_url);
+        }
+
+        const imageUrl = req.file ? `/uploads/${req.file.filename}` : existingCourse.image_url;
+
+        const updatedCourse = new Course({
+            ...existingCourse,
+            ...req.body,
+            course_steps: JSON.parse(req.body.course_steps),
+            image_url: imageUrl,
+        });
+
+        Course.updateById(courseId, updatedCourse, (err, data) => {
+            if (err) {
+                if (err.kind === "not_found") {
+                    res.status(404).send({ message: `Not found Course with id ${courseId}.` });
+                } else {
+                    res.status(500).send({ message: "Error updating Course with id " + courseId });
+                }
+            } else res.send(data);
+        });
+    });
+};

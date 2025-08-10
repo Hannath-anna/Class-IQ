@@ -60,4 +60,24 @@ Course.findById = (id, result) => {
     });
 };
 
+Course.updateById = (id, course, result) => {
+    sql.query(
+        "UPDATE courses SET course_name = ?, image_url = ?, description = ?, sub_description = ?, duration_text = ?, fee = ?, course_steps = ?, isBlocked = ? WHERE id = ?",
+        [course.course_name, course.image_url, course.description, course.sub_description, course.duration_text, course.fee, JSON.stringify(course.course_steps), course.isBlocked, id],
+        (err, res) => {
+            if (err) {
+                console.log("error: ", err);
+                result(err, null);
+                return;
+            }
+            if (res.affectedRows == 0) {
+                // not found Course with the id
+                result({ kind: "not_found" }, null);
+                return;
+            }
+            result(null, { id: id, ...course });
+        }
+    );
+};
+
 module.exports = Course;
