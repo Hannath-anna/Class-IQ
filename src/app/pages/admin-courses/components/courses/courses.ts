@@ -127,6 +127,20 @@ export class Courses {
     }); 
   }
 
+  toggleBlockStatus(course: any) {
+    const newStatus = !course.isBlocked;
+
+    this.backendService.updateCourseBlockStatus(course.id, newStatus).subscribe({
+      next: (response) => {
+        console.log(response.message);
+        course.isBlocked = newStatus;
+      },
+      error: (err) => {
+        console.error('Failed to update block status:', err);
+      }
+    });
+  }
+
   onSubmit() {
      if (this.courseForm.invalid || (!this.isEditMode && !this.selectedFile)) {
       console.error("Form is invalid or file not selected for new course.");

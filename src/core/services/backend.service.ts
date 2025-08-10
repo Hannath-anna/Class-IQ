@@ -22,4 +22,10 @@ export class BackendService {
         const params = new HttpParams().set('id', id);
         return this.http.patch(`${this.apiUrl}/courses`, formData, { params });
     }
+
+    updateCourseBlockStatus(id: string, isBlocked: boolean): Observable<any> {
+        const params = new HttpParams().set('id', id);
+        const body = { isBlocked };
+        return this.http.patch(`${this.apiUrl}/courses/block`, body, { params });
+    }
 }
