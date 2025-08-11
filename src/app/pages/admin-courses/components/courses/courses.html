@@ -3,7 +3,8 @@
     <div *ngIf="loadingCourse" class="loading-overlay">
         <div class="spinner"></div>
     </div>
-    <div *ngIf="!loadingCourse" class="w-full gap-5 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div *ngIf="!loadingCourse && courses.length === 0" class="w-full h-full text-lg flex items-center justify-center p-[1rem]">No Data Found!</div>
+    <div *ngIf="!loadingCourse && courses.length > 0" class="w-full gap-5 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <div *ngFor="let course of courses" class="card w-full relative border/5 bg-black/5 rounded-2xl p-5 flex flex-col gap-5">
             <button 
                 [ngClass]="{
