@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core'; // Import OnInit
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BackendService } from '../../../../../core/services/backend.service';
 import { environments } from '../../../../../../environments/environment';
@@ -27,6 +27,7 @@ export class Courses implements OnInit {
       sub_description: [''],
       duration_text: ['', Validators.required],
       fee: [null, [Validators.required, Validators.min(0)]],
+      batch_strength: [null, [Validators.required, Validators.min(1)]],
       course_steps: this.fb.array([this.createStep()]),
       courseImage: [null],
       isBlocked: [false]
@@ -57,12 +58,12 @@ export class Courses implements OnInit {
     this.courseSteps.removeAt(index);
   }
 
-  loadingCourse = false
+  loadingCourse = false;
   loadCourses() {
-    this.loadingCourse = true
+    this.loadingCourse = true;
     this.backendService.getCourses().subscribe({
-      next: (res) => { this.courses = res; this.loadingCourse = false},
-      error: (err) => { this.toastr.error('Failed to load courses. Please check your connection.', 'Load Error'); this.loadingCourse = false}
+      next: (res) => { this.courses = res; this.loadingCourse = false; },
+      error: (err) => { this.toastr.error('Failed to load courses.', 'Load Error'); this.loadingCourse = false; }
     });
   }
 
@@ -70,65 +71,49 @@ export class Courses implements OnInit {
     this.isEditMode = false;
     this.editingCourseId = null;
     this.openModale = true;
-
-    // Reset form to its initial state for adding a new course
-    this.courseForm.reset({ isBlocked: false });
+    this.courseForm.reset({ isBlocked: false, unit: 'Months' });
     this.courseSteps.clear();
     this.addStep();
     this.selectedFile = null;
   }
 
- editClicked(course: any) {
-  this.isEditMode = true;
-  this.editingCourseId = course.id;
-  this.openModale = true;
-
-  this.courseForm.patchValue({
-    course_name: course.course_name,
-    description: course.description,
-    sub_description: course.sub_description,
-    duration_text: course.duration_text,
-    fee: course.fee,
-    isBlocked: !!course.isBlocked,
-  });
-
-  this.courseSteps.clear();
-  const steps = typeof course.course_steps === 'string' 
-                ? JSON.parse(course.course_steps) 
-                : course.course_steps;
-
-  if (steps && Array.isArray(steps) && steps.length > 0) {
-    steps.forEach((stepData: any) => {
-      console.log('Attempting to patch step with this data:', stepData);
-      
-      const stepGroup = this.createStep();
-      stepGroup.patchValue(stepData); 
-      this.courseSteps.push(stepGroup);
+  editClicked(course: any) {
+    this.isEditMode = true;
+    this.editingCourseId = course.id;
+    this.openModale = true;
+    this.courseForm.patchValue({
+      course_name: course.course_name,
+      description: course.description,
+      sub_description: course.sub_description,
+      duration_text: course.duration_text,
+      fee: course.fee,
+      batch_strength: course.batch_strength,
+      isBlocked: !!course.isBlocked,
     });
-  } else {
-    this.addStep();
+    this.courseSteps.clear();
+    const steps = typeof course.course_steps === 'string' ? JSON.parse(course.course_steps) : course.course_steps;
+    if (steps && Array.isArray(steps) && steps.length > 0) {
+      steps.forEach((stepData: any) => {
+        const stepGroup = this.createStep();
+        stepGroup.patchValue(stepData);
+        this.courseSteps.push(stepGroup);
+      });
+    } else {
+      this.addStep();
+    }
+    this.selectedFile = null;
+    this.courseForm.get('courseImage')?.setValue(null);
   }
 
-  this.selectedFile = null;
-  this.courseForm.get('courseImage')?.setValue(null);
-}
-
   closeModal() {
-  this.openModale = false;
-  this.isEditMode = false;
-  this.editingCourseId = null;
-
-  // Single, effective reset call with default values
-  this.courseForm.reset({
-    isBlocked: false,
-    unit: 'Months' 
-  });
-
-  this.courseSteps.clear();
-  this.addStep();
-  
-  this.selectedFile = null;
-}
+    this.openModale = false;
+    this.isEditMode = false;
+    this.editingCourseId = null;
+    this.courseForm.reset({ isBlocked: false, unit: 'Months' });
+    this.courseSteps.clear();
+    this.addStep();
+    this.selectedFile = null;
+  }
 
   onFileChange(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -138,19 +123,18 @@ export class Courses implements OnInit {
     }
   }
 
-  isBlocking = false
+  isBlocking = false;
   toggleBlockStatus(course: any) {
-    this.isBlocking = true
+    this.isBlocking = true;
     const newStatus = !course.isBlocked;
     const action = newStatus ? 'block' : 'unblock';
     this.backendService.updateCourseBlockStatus(course.id, newStatus).subscribe({
       next: (response) => {
-        this.toastr.success(`Course "${course.course_name}" was ${action.toLowerCase()}ed!`, 'Update Successful');
-        
-        // this.loadCourses(); 
-        this.isBlocking = false
+        this.toastr.success(`Course "${course.course_name}" was ${action}ed!`, 'Update Successful');
+        course.isBlocked = newStatus;
+        this.isBlocking = false;
       },
-      error: (err) => {this.toastr.error(`Failed to ${action.toLowerCase()} course. Please try again.`, 'Update Failed'); this.isBlocking = false}
+      error: (err) => { this.toastr.error(`Failed to ${action} course.`, 'Update Failed'); this.isBlocking = false; }
     });
   }
   
@@ -161,67 +145,65 @@ export class Courses implements OnInit {
       this.deletingCourseId = course.id;
       this.backendService.deleteCourse(course.id).subscribe({
         next: (response) => {
-          this.toastr.success(`Course "${course.course_name}" was deleted successfully.`, 'Delete Successful');
+          this.toastr.success(`Course "${course.course_name}" was deleted.`, 'Delete Successful');
           this.deletingCourseId = null;
           setTimeout(() => {
-            // this.loadCourses(); 
+            // this.loadCourses();
             // this.courses = this.courses.filter((c: any) => c.id !== course.id)
             window.location.reload()
           },10);
         },
-        error: (err) => {this.toastr.error('Failed to delete course. Please try again.', 'Delete Failed'); this.deletingCourseId = null;}
+        error: (err) => { this.toastr.error('Failed to delete course.', 'Delete Failed'); this.deletingCourseId = null; }
       });
     }
   }
 
-  isSubmitting = false
+  isSubmitting = false;
   onSubmit() {
     if (this.courseForm.invalid || (!this.isEditMode && !this.selectedFile)) {
-      this.toastr.error('Please fill out all required fields and select an image.', 'Invalid Form');
+      this.toastr.error('Please fill out all required fields.', 'Invalid Form');
       this.courseForm.markAllAsTouched();
       return;
     }
-
+    this.isSubmitting = true;
     const formData = new FormData();
     if (this.selectedFile) {
       formData.append('courseImage', this.selectedFile, this.selectedFile.name);
     }
     Object.keys(this.courseForm.value).forEach(key => {
-        if (key !== 'courseImage') { 
-            const value = this.courseForm.value[key];
-            if (key === 'course_steps') {
-                formData.append(key, JSON.stringify(value));
-            } else {
-                formData.append(key, value);
-            }
+      if (key !== 'courseImage') {
+        const value = this.courseForm.value[key];
+        if (key === 'course_steps') {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, value);
         }
+      }
     });
 
     if (this.isEditMode) {
-      this.isSubmitting = true
       this.backendService.updateCourse(this.editingCourseId!, formData).subscribe({
-        next: (res) => { 
+        next: (res) => {
+          this.toastr.success('Course updated successfully!', 'Saved');
+          this.isSubmitting = false;
           this.courses = this.courses.map((course: any) =>
             course.id === this.editingCourseId
               ? { ...course, ...this.courseForm.value }
               : course
           );
-          this.closeModal(); 
-          this.toastr.success('Course updated successfully!', 'Saved'); 
-          this.isSubmitting = false
+          this.closeModal();
         },
-        error: (err) => {this.toastr.error('Failed to update course. Please try again.', 'Save Failed'); this.isSubmitting = false}
+        error: (err) => { this.toastr.error('Failed to update course.', 'Save Failed'); this.isSubmitting = false; }
       });
     } else {
-      this.isSubmitting = true
       this.backendService.addCourse(formData).subscribe({
-        next: (res) => { 
+        next: (res) => {
           this.courses.push(res)
-          this.closeModal(); 
           this.toastr.success('Course added successfully!', 'Created');
-          this.isSubmitting = false
+          this.isSubmitting = false;
+          this.closeModal();
         },
-        error: (err) => {console.error('Error adding course:', err); this.isSubmitting = false}
+        error: (err) => { console.error('Error adding course:', err); this.isSubmitting = false; }
       });
     }
   }

@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
     {
-        path: "auth",
+        path: "",
         loadComponent: () => import("./layout/admin-layout/admin-layout").then(c => c.AdminLayout),
         children: [
             {
@@ -12,7 +12,11 @@ export const routes: Routes = [
         ]
     },
     {
-        path: "",
+        path: "login",
         loadComponent: () => import("./pages/login/login").then(c => c.Login),
+    },
+    {
+        path: "signup",
+        loadComponent: () => import("./pages/signup/signup").then(c => c.Signup),
     }
 ];

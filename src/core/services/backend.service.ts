@@ -33,4 +33,8 @@ export class BackendService {
         const params = new HttpParams().set('id', id);
         return this.http.delete(`${this.apiUrl}/courses`, { params });
     }
+
+    signup(signupData: FormData) {
+        return this.http.post(`${this.apiUrl}/users/signup`, signupData)
+    }
 }

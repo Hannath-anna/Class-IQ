@@ -17,10 +17,11 @@
 
             <img [src]="backendUrl+course?.image_url" alt="" class="aspect-square rounded-md w-full object-cover">
             <h2 class="text-3xl font-bold">{{course?.course_name}}</h2>
-            <p>{{course?.duration_text}}</p>
+            <p><strong>Duration:</strong> {{course?.duration_text}}</p>
+            <p><strong>Strength:</strong> {{course?.batch_strength}} Students</p>
             <p class="text-black/70">{{course?.description}}</p>
 
-            <div class="flex gap-3 justify-between">
+            <div class="flex gap-3 justify-between mt-auto">
                 <button [disabled]="deletingCourseId === course.id" (click)="editClicked(course)" class="mt-auto button flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-all">
                     Edit
                 </button>
@@ -38,17 +39,11 @@
     </div>
 </section>
 
-<section *ngIf="openModale" class="fixed  z-[20] inset-0 bg-black/60 backdrop-blur-sm flex items-start my-auto justify-center overflow-auto p-20">
+<section *ngIf="openModale" class="fixed z-[20] inset-0 bg-black/60 backdrop-blur-sm flex items-start my-auto justify-center overflow-auto p-20">
     <div class="p-10 bg-white rounded-2xl w-full max-w-2xl relative overflow-auto">
-
-        <!-- Close Button -->
         <button (click)="closeModal()" class="absolute top-4 right-4 text-3xl">×</button>
-        
         <h2 class="text-2xl font-bold mb-6">{{ isEditMode ? 'Edit Course' : 'Add New Course' }}</h2>
-
-        <!-- The Form -->
         <form [formGroup]="courseForm" (ngSubmit)="onSubmit()" novalidate>
-            <!-- Course Name -->
             <div class="mb-4">
                 <label for="course_name" class="block mb-1">Course Name</label>
                 <input type="text" id="course_name" formControlName="course_name" class="w-full p-2 border rounded">
@@ -56,17 +51,22 @@
                     Course name is required.
                 </div>
             </div>
-
-            <!-- Image Upload -->
-            <div class="mb-4">
-                <label for="courseImage" class="block mb-1">Course Image</label>
-                <input type="file" id="courseImage" (change)="onFileChange($event)" class="w-full p-2 border rounded">
-                <div *ngIf="courseForm.get('courseImage')?.invalid && courseForm.get('courseImage')?.touched" class="text-red-500 text-sm mt-1">
-                    An image is required.
+            <div class="mb-4 grid grid-cols-2 gap-4">
+                <div class="">
+                    <label for="courseImage" class="block mb-1">Course Image</label>
+                    <input type="file" id="courseImage" (change)="onFileChange($event)" class="w-full p-2 border rounded">
+                    <div *ngIf="courseForm.get('courseImage')?.invalid && courseForm.get('courseImage')?.touched" class="text-red-500 text-sm mt-1">
+                        An image is required.
+                    </div>
+                </div>
+                <div class="">
+                    <label for="batch_strength" class="block mb-1">Batch Strength (Max Students)</label>
+                    <input type="number" id="batch_strength" formControlName="batch_strength" class="w-full p-2 border rounded">
+                    <div *ngIf="courseForm.get('batch_strength')?.invalid && courseForm.get('batch_strength')?.touched" class="text-red-500 text-sm mt-1">
+                        Batch strength is required.
+                    </div>
                 </div>
             </div>
-
-            <!-- Description -->
             <div class="mb-4">
                 <label for="description" class="block mb-1">Description</label>
                 <textarea id="description" formControlName="description" class="resize-none w-full p-2 border rounded" rows="4"></textarea>
@@ -74,8 +74,6 @@
                     Description is required.
                 </div>
             </div>
-            
-            <!-- Duration & Fee -->
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
                     <label for="duration_text" class="block mb-1">Course Duration (e.g., "18 Months")</label>
@@ -92,21 +90,14 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Course Steps -->
+            
             <h3 class="font-semibold mb-2">Course Steps</h3>
             <div formArrayName="course_steps">
                 <div *ngFor="let step of courseSteps.controls; let i=index" [formGroupName]="i" class="p-4 border rounded-lg mb-4 relative">
-                    <button 
-                        *ngIf="courseSteps.length > 1"
-                        (click)="removeStep(i)" 
-                        type="button" 
-                        class="absolute button top-2 right-2 text-red-500 font-bold text-xl">
+                    <button *ngIf="courseSteps.length > 1" (click)="removeStep(i)" type="button" class="absolute button top-2 right-2 text-red-500 font-bold text-xl">
                         ×
                     </button>
-
                     <div class="grid grid-cols-5 gap-4">
-                        <!-- Unit (Weeks/Months) -->
                         <div class="col-span-3">
                             <label [for]="'unit' + i" class="block mb-1 text-sm">Unit</label>
                             <select [id]="'unit' + i" formControlName="unit" class="w-full p-2 border rounded bg-white">
@@ -115,42 +106,30 @@
                                 <option value="Days">Days</option>
                             </select>
                         </div>
-                        
-                        <!-- Duration -->
                         <div class="col-span-2">
                             <label [for]="'duration' + i" class="block mb-1 text-sm">Duration</label>
                             <input type="number" [id]="'duration' + i" formControlName="duration" class="w-full p-2 border rounded">
                         </div>
                     </div>
-
-                    <!-- Description -->
                     <div class="mt-2">
                         <label [for]="'description' + i" class="block mb-1 text-sm">Topics / Description</label>
                         <textarea [id]="'description' + i" formControlName="description" class="w-full p-2 border resize-none rounded" rows="2"></textarea>
-                        <!-- Example of validation for a field within a FormArray -->
                         <div *ngIf="step.get('description')?.invalid && step.get('description')?.touched" class="text-red-500 text-sm mt-1">
                             Description for this step is required.
                         </div>
-                    </div> 
+                    </div>
                 </div>
             </div>
-
-            <!-- Button to add a new step -->
             <button (click)="addStep()" type="button" class="mb-5 button border border-blue-600 hover:border-blue-800 py-1 px-5 rounded-full button transition-all text-blue-600 hover:text-blue-800 font-semibold">
                 + Add Another Step
             </button>
-
             <div class="mb-4 flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                 <input type="checkbox" id="isBlocked" formControlName="isBlocked" class="w-5 h-5 rounded text-blue-600 focus:ring-blue-500">
                 <label for="isBlocked" class="font-medium text-gray-700">Block this course from being visible to students</label>
             </div>
-
-            <!-- Submit Button -->
-            <button [disabled]="isSubmitting" type="submit" [disabled]="courseForm.invalid" 
-                    class="w-full button p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400">
-                
-                <div *ngIf="isSubmitting else normalText" class="spinner2 m-auto"></div>
-                <ng-template #normalText>
+            <button [disabled]="isSubmitting" type="submit" class="w-full button p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400">
+                <div *ngIf="isSubmitting; else normalSubmitText" class="spinner2 m-auto"></div>
+                <ng-template #normalSubmitText>
                     {{ isEditMode ? 'Save Changes' : 'Add Course' }}
                 </ng-template>
             </button>
