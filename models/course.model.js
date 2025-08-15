@@ -18,8 +18,9 @@ const Course = function(course) {
     this.sub_description = course.sub_description;
     this.duration_text = course.duration_text;
     this.fee = course.fee;
+    this.batch_strength = course.batch_strength;
     this.course_steps = JSON.stringify(course.course_steps);
-    this.isBlocked = course.isBlocked === undefined ? false : course.isBlocked;
+    this.isBlocked = course.isBlocked
 };
 
 Course.create = (newCourse, result) => {
@@ -33,7 +34,7 @@ Course.create = (newCourse, result) => {
     });
 };
 
-Course.getAll = (result) => {
+Course.getAll = (result) => { 
     sql.query("SELECT * FROM courses", (err, res) => {
         if (err) {
             console.log("error: ", err);
@@ -45,7 +46,7 @@ Course.getAll = (result) => {
 };
 
 Course.findById = (id, result) => {
-    sql.query(`SELECT * FROM courses WHERE id = ${id}`, (err, res) => {
+    sql.query("SELECT * FROM courses WHERE id = ?", [id], (err, res) => {
         if (err) {
             console.log("error: ", err);
             result(err, null);
@@ -62,8 +63,8 @@ Course.findById = (id, result) => {
 
 Course.updateById = (id, course, result) => {
     sql.query(
-        "UPDATE courses SET course_name = ?, image_url = ?, description = ?, sub_description = ?, duration_text = ?, fee = ?, course_steps = ?, isBlocked = ? WHERE id = ?",
-        [course.course_name, course.image_url, course.description, course.sub_description, course.duration_text, course.fee, JSON.stringify(course.course_steps), course.isBlocked, id],
+        "UPDATE courses SET course_name = ?, image_url = ?, description = ?, sub_description = ?, duration_text = ?, fee = ?, batch_strength = ?, course_steps = ?, isBlocked = ? WHERE id = ?",
+        [course.course_name, course.image_url, course.description, course.sub_description, course.duration_text, course.fee, course.batch_strength, JSON.stringify(course.course_steps), course.isBlocked, id],
         (err, res) => {
             if (err) {
                 console.log("error: ", err);
@@ -71,7 +72,6 @@ Course.updateById = (id, course, result) => {
                 return;
             }
             if (res.affectedRows == 0) {
-                // not found Course with the id
                 result({ kind: "not_found" }, null);
                 return;
             }

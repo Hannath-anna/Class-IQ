@@ -30,6 +30,10 @@ db.connect(error => {
   const courseRoutes = require("./router/course.router")
   app.use("/api/courses", courseRoutes)
 
+
+  const userRoutes = require("./router/auth.router.js");
+  app.use("/api/users", userRoutes);
+
   const port = config.PORT;
   app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
