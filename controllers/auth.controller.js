@@ -1,5 +1,7 @@
 const User = require("../models/auth.model");
 const sendOtpEmail = require("../services/email.service.ts");
+const jwt = require('jsonwebtoken');
+const config = require('../config');
 
 exports.sendOtp = (req, res) => {
     if (!req.body || !req.body.email || !req.body.password) {
@@ -72,3 +74,34 @@ exports.verifyOtpAndSignup = (req, res) => {
         });
     });
 };  
+
+exports.login = (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+        return res.status(400).send({ message: "Email and password are required." });
+    }
+
+    User.login(email, password, (err, data) => {
+        if (err) {
+            // Handle specific errors from the model with a 401 Unauthorized status
+            if (err.kind === "not_found" || err.kind === "invalid_credentials" || err.kind === "not_verified" || err.kind === "blocked") {
+                return res.status(401).send({ message: err.message });
+            }
+            // Handle generic server errors
+            return res.status(500).send({ message: "An error occurred during login." });
+        }
+
+        // User is authenticated, create a JWT
+        const payload = { id: data.id, email: data.email, fullname: data.fullname };
+        const token = jwt.sign(
+            payload,
+            config.JWT_SECRET,
+            { expiresIn: '4h' }
+        );
+
+        res.status(200).send({
+            message: "Logged in successfully!",
+            token: token,
+        });
+    });
+};

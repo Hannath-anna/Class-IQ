@@ -115,4 +115,43 @@ User.verifyOtp = (email, otp, result) => {
     });
 };
 
+User.login = (email, password, result) => {
+    sql.query("SELECT * FROM students WHERE email = ?", [email], (err, users) => {
+        if (err) {
+            console.log("Database error: ", err);
+            return result(err, null);
+        }
+
+        if (users.length === 0) {
+            return result({ kind: "not_found", message: "Invalid email or password." }, null);
+        }
+
+        const user = users[0];
+
+        // Compare the submitted password with the stored hash
+        bcrypt.compare(password, user.password, (bcryptErr, isMatch) => {
+            if (bcryptErr) {
+                return result(bcryptErr, null);
+            }
+            if (!isMatch) {
+                return result({ kind: "invalid_credentials", message: "Invalid email or password." }, null);
+            }
+
+            // Check if the account is verified
+            if (!user.isVerified) {
+                return result({ kind: "not_verified", message: "Please verify your email address before logging in." }, null);
+            }
+
+            // Check if the account is blocked
+            if (user.isBlocked) {
+                return result({ kind: "blocked", message: "Your account has been blocked. Please contact support." }, null);
+            }
+
+            // All checks passed! Return the user data (without the password).
+            const { password, otp, ...userWithoutSensitiveData } = user;
+            result(null, userWithoutSensitiveData);
+        });
+    });
+};
+
 module.exports = User;

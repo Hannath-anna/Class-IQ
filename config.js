@@ -7,5 +7,6 @@ module.exports = {
     DB_PASSWORD: process.env.PASSWORD,
     DB_NAME: process.env.DB,
     MAIL: process.env.MAIL,
-    MAIL_PASSWORD: process.env.MAIL_PASSWORD
+    MAIL_PASSWORD: process.env.MAIL_PASSWORD,
+    JWT_SECRET: process.env.JWT_SECRET
 }
