@@ -33,12 +33,16 @@ export class BackendService {
         const params = new HttpParams().set('id', id);
         return this.http.delete(`${this.apiUrl}/courses`, { params });
     }
-    
+
     sendOtp(signupData: FormData) {
         return this.http.post(`${this.apiUrl}/users/otp-request`, signupData)
     }
 
     verifyOtp(data: {email: string, otp: number}) {
         return this.http.post(`${this.apiUrl}/users/verify-otp`, data)
+    }
+
+    login(loginData: FormData) {
+        return this.http.post(`${this.apiUrl}/users/login`, loginData)
     }
 }
