@@ -4,7 +4,6 @@ import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validator
 import { BackendService } from '../../../core/services/backend.service';
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-signup',
@@ -17,6 +16,8 @@ import { finalize } from 'rxjs/operators';
 })
 export class Signup {
   signupForm: FormGroup;
+  otpForm: FormGroup;
+  otpSent = false;
   isLoading = false;
 
   courses: any = ['No Preference'];
@@ -35,6 +36,10 @@ export class Signup {
       confirmPassword: ['', [Validators.required]],
       agreeToTerms: [false, [Validators.requiredTrue]]
     }, { validators: this.passwordMatchValidator });
+
+    this.otpForm = this.fb.group({
+      otp: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]]
+    });
   }
 
   ngOnInit() {
@@ -84,16 +89,48 @@ export class Signup {
     this.isLoading = true;
     const formData = this.signupForm.value;    
 
-    this.backendService.signup(formData).subscribe({
+    this.backendService.sendOtp(formData).subscribe({
       next: (response: any) => {
-        this.toastr.success('Account created successfully!', 'Welcome!');
-        this.router.navigate(['/login']);
+        this.toastr.success(response.message || 'OTP sent successfully!', 'Check Your Email');
+        this.otpSent = true;
         this.isLoading = false;
+        this.signupForm.reset();
         this.cdr.markForCheck();
       },
       error: (err) => {
         this.toastr.error(err.error.message || 'An unknown error occurred.', 'Signup Failed');
         this.isLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  verifyOtp() {
+    if (this.otpForm.invalid) {
+      this.toastr.error('Please enter a valid 6-digit OTP.');
+      return;
+    }
+
+    this.isLoading = true;
+    const verificationData = {
+      email: this.signupForm.value.email,
+      otp: this.otpForm.value.otp
+    };
+
+    this.backendService.verifyOtp(verificationData).subscribe({
+      next: (response: any) => {
+        this.toastr.success('Account created successfully!', 'Welcome!');
+        this.isLoading = false;
+        this.otpSent = false;
+        this.otpForm.reset();
+        this.cdr.markForCheck();
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        this.toastr.error(err.error.message || 'Verification failed. Please try again.', 'Error');
+        this.isLoading = false;
+        this.otpSent = false;
+        this.otpForm.reset();
         this.cdr.markForCheck();
       }
     });
