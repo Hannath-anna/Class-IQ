@@ -216,4 +216,17 @@ User.resetPasswordWithOtp = (email, otp, newPassword, result) => {
     );
 };
 
+User.getAll = (result) => {
+    sql.query(
+        "SELECT id, fullname, email, phone, course, isVerified, isBlocked, createdAt FROM students ORDER BY createdAt DESC",
+        (err, res) => {
+            if (err) {
+                console.error("Error fetching all users:", err);
+                return result(err, null);
+            }
+            result(null, res);
+        }
+    );
+};
+
 module.exports = User;
