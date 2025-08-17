@@ -45,4 +45,12 @@ export class BackendService {
     login(loginData: FormData) {
         return this.http.post(`${this.apiUrl}/users/login`, loginData)
     }
+
+    forgotPasswordRequest(data: any) {
+        return this.http.post(`${this.apiUrl}/users/forget-password`, data)
+    }
+
+    resetPassword(data: any) {
+        return this.http.post(`${this.apiUrl}/users/reset-password`, data)
+    }
 }
