@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BackendService } from '../../../../../core/services/backend.service';
 import { environments } from '../../../../../../environments/environment';
@@ -20,7 +20,7 @@ export class Courses implements OnInit {
   selectedFile: File | null = null;
   openModale = false;
 
-  constructor(private backendService: BackendService, private fb: FormBuilder, private toastr: ToastrService) {
+  constructor(private backendService: BackendService, private fb: FormBuilder, private toastr: ToastrService, private cdr: ChangeDetectorRef) {
     this.courseForm = this.fb.group({
       course_name: ['', Validators.required],
       description: ['', Validators.required],
@@ -62,8 +62,8 @@ export class Courses implements OnInit {
   loadCourses() {
     this.loadingCourse = true;
     this.backendService.getCourses().subscribe({
-      next: (res) => { this.courses = res; this.loadingCourse = false; },
-      error: (err) => { this.toastr.error('Failed to load courses.', 'Load Error'); this.loadingCourse = false; }
+      next: (res) => { this.courses = res; this.loadingCourse = false; this.cdr.markForCheck()},
+      error: (err) => { this.toastr.error('Failed to load courses.', 'Load Error'); this.loadingCourse = false; this.cdr.markForCheck()}
     });
   }
 
@@ -133,8 +133,9 @@ export class Courses implements OnInit {
         this.toastr.success(`Course "${course.course_name}" was ${action}ed!`, 'Update Successful');
         course.isBlocked = newStatus;
         this.isBlocking = false;
+        this.cdr.markForCheck()
       },
-      error: (err) => { this.toastr.error(`Failed to ${action} course.`, 'Update Failed'); this.isBlocking = false; }
+      error: (err) => { this.toastr.error(`Failed to ${action} course.`, 'Update Failed'); this.isBlocking = false; this.cdr.markForCheck()}
     });
   }
   
@@ -147,13 +148,10 @@ export class Courses implements OnInit {
         next: (response) => {
           this.toastr.success(`Course "${course.course_name}" was deleted.`, 'Delete Successful');
           this.deletingCourseId = null;
-          setTimeout(() => {
-            // this.loadCourses();
-            // this.courses = this.courses.filter((c: any) => c.id !== course.id)
-            window.location.reload()
-          },10);
+          this.courses = this.courses.filter((c: any) => c.id !== course.id)
+          this.cdr.markForCheck()
         },
-        error: (err) => { this.toastr.error('Failed to delete course.', 'Delete Failed'); this.deletingCourseId = null; }
+        error: (err) => { this.toastr.error('Failed to delete course.', 'Delete Failed'); this.deletingCourseId = null; this.cdr.markForCheck()}
       });
     }
   }
@@ -192,8 +190,9 @@ export class Courses implements OnInit {
               : course
           );
           this.closeModal();
+          this.cdr.markForCheck()
         },
-        error: (err) => { this.toastr.error('Failed to update course.', 'Save Failed'); this.isSubmitting = false; }
+        error: (err) => { this.toastr.error('Failed to update course.', 'Save Failed'); this.isSubmitting = false; this.cdr.markForCheck()}
       });
     } else {
       this.backendService.addCourse(formData).subscribe({
@@ -202,8 +201,9 @@ export class Courses implements OnInit {
           this.toastr.success('Course added successfully!', 'Created');
           this.isSubmitting = false;
           this.closeModal();
+          this.cdr.markForCheck()
         },
-        error: (err) => { console.error('Error adding course:', err); this.isSubmitting = false; }
+        error: (err) => { console.error('Error adding course:', err); this.isSubmitting = false; this.cdr.markForCheck()}
       });
     }
   }

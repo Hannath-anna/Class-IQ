@@ -53,4 +53,8 @@ export class BackendService {
     resetPassword(data: any) {
         return this.http.post(`${this.apiUrl}/users/reset-password`, data)
     }
+
+    getAllUsers(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/users`);
+    }
 }

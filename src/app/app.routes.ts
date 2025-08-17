@@ -6,9 +6,13 @@ export const routes: Routes = [
         loadComponent: () => import("./layout/admin-layout/admin-layout").then(c => c.AdminLayout),
         children: [
             {
+                path: "",
+                loadComponent: () => import("./pages/admin-auth-request/admin-auth-request").then(c => c.AdminAuthRequest)
+            },
+            {
                 path: "courses",
                 loadComponent: () => import("./pages/admin-courses/admin-courses").then(c => c.AdminCourses)
-            }
+            },
         ]
     },
     {
