@@ -19,6 +19,7 @@ const User = function(user) {
     this.password = user.password;
     this.course = user.course;
     this.isVerified = user.isVerified;
+    this.otpExpiresAt = user.otpExpiresAt;
     this.otp = user.otp,
     this.isBlocked = user.isBlocked;
 };
@@ -48,8 +49,8 @@ User.create = async (userData, result) => {
 
                 // User exists but is not verified, so UPDATE them.
                 sql.query(
-                    "UPDATE students SET fullname = ?, email = ?, phone = ?, password = ?, course = ?, otp = ?, isVerified = false WHERE id = ?",
-                    [userData.fullname, userData.email, userData.phone, userData.password, userData.course, userData.otp, existingUser.id],
+                    "UPDATE students SET fullname = ?, email = ?, phone = ?, password = ?, course = ?, otp = ?, otpExpiresAt = ? isVerified = false WHERE id = ?",
+                    [userData.fullname, userData.email, userData.phone, userData.password, userData.course, userData.otp, userData.otpExpiresAt, existingUser.id],
                     (updateErr, updateRes) => {
                         if (updateErr) {
                             console.log("error: ", updateErr);
@@ -91,16 +92,18 @@ User.verifyOtp = (email, otp, result) => {
 
         const user = users[0];
 
+        if (user.otpExpiresAt < Date.now()) {
+            return result({ kind: "otp_expired", message: "The OTP you entered is expired, Please try again." }, null);
+        }
+
         // Check if the OTP matches
         if (user.otp !== parseInt(otp)) {
-            console.log(user.otp, otp);
-            
             return result({ kind: "invalid_otp", message: "The OTP you entered is incorrect." }, null);
         }
 
         // OTP is correct! Update the user record.
         sql.query(
-            "UPDATE students SET isVerified = true, otp = NULL WHERE id = ?",
+            "UPDATE students SET isVerified = true, otp = NULL, otpExpiresAt = NULL WHERE id = ?",
             [user.id],
             (updateErr, updateRes) => {
                 if (updateErr) {
@@ -152,6 +155,65 @@ User.login = (email, password, result) => {
             result(null, userWithoutSensitiveData);
         });
     });
+};
+
+User.setResetOtp = (email, otp, otpExpiresAt, result) => {
+    sql.query("SELECT * FROM students WHERE email = ? AND isVerified = true", [email], (err, users) => {
+        if (err) return result(err, null);
+
+        // If no verified user is found, we don't proceed.
+        if (users.length === 0) {
+            return result({ kind: "not_found" }, null);
+        }
+
+        const user = users[0];
+
+        // Update the user's record with the new OTP and its expiration
+        sql.query(
+            "UPDATE students SET otp = ?, otpExpiresAt = ? WHERE id = ?",
+            [otp, otpExpiresAt, user.id],
+            (updateErr, updateRes) => {
+                if (updateErr) return result(updateErr, null);
+                // Return the generated OTP so it can be emailed
+                result(null, { otp });
+            }
+        );
+    });
+};
+
+User.resetPasswordWithOtp = (email, otp, newPassword, result) => {
+    // Find the user by email, ensuring the OTP is not expired
+    sql.query(
+        "SELECT * FROM students WHERE email = ? AND otpExpiresAt > NOW()",
+        [email],
+        async (err, users) => {
+            if (err) return result(err, null);
+
+            if (users.length === 0) {
+                return result({ kind: "expired_or_invalid", message: "OTP is invalid or has expired." }, null);
+            }
+
+            const user = users[0];
+
+            // Check if the OTP matches
+            if (user.otp !== parseInt(otp)) {
+                return result({ kind: "invalid_otp", message: "The OTP you entered is incorrect." }, null);
+            }
+
+            // Hash the new password
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+            // Update the password and clear the OTP fields
+            sql.query(
+                "UPDATE students SET password = ?, otp = NULL, otpExpiresAt = NULL WHERE id = ?",
+                [hashedPassword, user.id],
+                (updateErr, updateRes) => {
+                    if (updateErr) return result(updateErr, null);
+                    result(null, { message: "Password has been reset successfully." });
+                }
+            );
+        }
+    );
 };
 
 module.exports = User;
