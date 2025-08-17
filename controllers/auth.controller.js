@@ -20,7 +20,8 @@ exports.sendOtp = (req, res) => {
         isVerified: false,
         otp: otp,
         otpExpiresAt: otpExpiresAt,
-        isBlocked: false
+        isBlocked: false,
+        isApproved: false
     });    
 
     User.create(userData, (err, data) => {

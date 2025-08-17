@@ -22,6 +22,7 @@ const User = function(user) {
     this.otpExpiresAt = user.otpExpiresAt;
     this.otp = user.otp,
     this.isBlocked = user.isBlocked;
+    this.isApproved = user.isApproved;
 };
 
 User.create = async (userData, result) => {
@@ -49,7 +50,7 @@ User.create = async (userData, result) => {
 
                 // User exists but is not verified, so UPDATE them.
                 sql.query(
-                    "UPDATE students SET fullname = ?, email = ?, phone = ?, password = ?, course = ?, otp = ?, otpExpiresAt = ? isVerified = false WHERE id = ?",
+                    "UPDATE students SET fullname = ?, email = ?, phone = ?, password = ?, course = ?, otp = ?, otpExpiresAt = ?, isVerified = false, isApproved = false WHERE id = ?",
                     [userData.fullname, userData.email, userData.phone, userData.password, userData.course, userData.otp, userData.otpExpiresAt, existingUser.id],
                     (updateErr, updateRes) => {
                         if (updateErr) {
