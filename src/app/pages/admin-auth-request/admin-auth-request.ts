@@ -14,6 +14,7 @@ import { ToastrService } from 'ngx-toastr';
 export class AdminAuthRequest {
   users: any[] = [];
   isLoading = true;
+  loadingActionIds = new Set<number>();
   constructor(private backendService: BackendService,private cdr: ChangeDetectorRef, private toastr: ToastrService) {}
 
   ngOnInit() {
@@ -32,5 +33,24 @@ export class AdminAuthRequest {
 
   verifyUser(user: string): void {}
 
-  toggleBlockUser(user: any): void {}
+  toggleBlockUser(user: any): void {    
+    const newStatus = !user.isBlocked;
+    const action = newStatus ? 'block' : 'unblock'; 
+    this.loadingActionIds.add(user.id);
+    this.backendService.blockUser(user.id, newStatus).subscribe({
+      next: () => {
+        this.toastr.success(`User "${user.email}" was ${action}ed successfully.`, 'Update Successful');
+        user.isBlocked = newStatus;
+        this.loadingActionIds.delete(user.id);
+        console.log(user);
+        
+        this.cdr.markForCheck()
+      },
+      error: (err) => {
+        this.toastr.error(`Failed to ${action} user. Please try again.`, 'Update Failed');
+        this.loadingActionIds.delete(user.id);
+        this.cdr.markForCheck()
+      }
+    })
+  }
 }

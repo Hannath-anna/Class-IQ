@@ -35,26 +35,31 @@ export class BackendService {
     }
 
     sendOtp(signupData: FormData) {
-        return this.http.post(`${this.apiUrl}/users/otp-request`, signupData)
+        return this.http.post(`${this.apiUrl}/auth/otp-request`, signupData)
     }
 
     verifyOtp(data: {email: string, otp: number}) {
-        return this.http.post(`${this.apiUrl}/users/verify-otp`, data)
+        return this.http.post(`${this.apiUrl}/auth/verify-otp`, data)
     }
 
     login(loginData: FormData) {
-        return this.http.post(`${this.apiUrl}/users/login`, loginData)
+        return this.http.post(`${this.apiUrl}/auth/login`, loginData)
     }
 
     forgotPasswordRequest(data: any) {
-        return this.http.post(`${this.apiUrl}/users/forget-password`, data)
+        return this.http.post(`${this.apiUrl}/auth/forget-password`, data)
     }
 
     resetPassword(data: any) {
-        return this.http.post(`${this.apiUrl}/users/reset-password`, data)
+        return this.http.post(`${this.apiUrl}/auth/reset-password`, data)
     }
 
     getAllUsers(): Observable<any[]> {
         return this.http.get<any[]>(`${this.apiUrl}/users`);
+    }
+
+    blockUser(id: any, isBlocked: boolean): Observable<any> {
+        const params = new HttpParams().set('id', id);  
+        return this.http.patch(`${this.apiUrl}/users/block`, {isBlocked}, {params});
     }
 }
