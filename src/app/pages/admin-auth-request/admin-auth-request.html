@@ -39,7 +39,7 @@
             <div class="text-sm text-gray-900">{{ user.course }}</div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-            <button *ngIf="!user.isApproved" (click)="verifyUser(user.id)" [disabled]="loadingActionIds.has(user.id)" 
+            <button *ngIf="!user.isApproved" (click)="verifStudent(user)" [disabled]="loadingActionIds.has(user.id)" 
                     class="py-1 px-3 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50">
                 <ng-container *ngIf="loadingActionIds.has(user.id); else buttonText">
                     <div class="spinner2"></div> 
@@ -49,7 +49,7 @@
                     Approve
                 </ng-template>
             </button>
-            <button (click)="toggleBlockUser(user)" [disabled]="loadingActionIds.has(user.id)" [ngClass]="{'bg-red-600 hover:bg-red-700': !user.isBlocked, 'bg-yellow-500 hover:bg-yellow-600': user.isBlocked}" class="py-1 px-3 border border-transparent rounded-md shadow-sm text-white disabled:opacity-50">
+            <button (click)="toggleBlockStudent(user)" [disabled]="loadingActionIds.has(user.id)" [ngClass]="{'bg-red-600 hover:bg-red-700': !user.isBlocked, 'bg-yellow-500 hover:bg-yellow-600': user.isBlocked}" class="py-1 px-3 border border-transparent rounded-md shadow-sm text-white disabled:opacity-50">
                 <ng-container *ngIf="loadingActionIds.has(user.id); else buttonText">
                     <div class="spinner2"></div> 
                 </ng-container>

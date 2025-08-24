@@ -58,8 +58,13 @@ export class BackendService {
         return this.http.get<any[]>(`${this.apiUrl}/users`);
     }
 
-    blockUser(id: any, isBlocked: boolean): Observable<any> {
+    blockStudent(id: any, isBlocked: boolean): Observable<any> {
         const params = new HttpParams().set('id', id);  
         return this.http.patch(`${this.apiUrl}/users/block`, {isBlocked}, {params});
+    }
+
+    verifyStudent(id: string) {
+        const params = new HttpParams().set('id', id);
+        return this.http.patch(`${this.apiUrl}/users/verify`, null, {params});
     }
 }
