@@ -79,6 +79,23 @@ User.create = async (userData, result) => {
     }
 };
 
+User.findById = (id, result) => {
+    sql.query("SELECT * FROM students WHERE id = ?", [id], (err, res) => {
+        if (err) {
+            console.log("error: ", err);
+            result(err, null);
+            return;
+        }
+
+        if (res.length) {
+            result(null, res[0]);
+            return;
+        }
+
+        result({ kind: "not_found" }, null);
+    });
+};
+
 User.verifyOtp = (email, otp, result) => {
     sql.query("SELECT * FROM students WHERE email = ?", [email], (err, users) => {
         if (err) {
@@ -255,5 +272,22 @@ User.setBlockStatus = (id, isBlocked, result) => {
     );
 };
 
+User.setApprovalStatus = (userId, isApproved, result) => {
+    sql.query(
+        "UPDATE students SET isApproved = ? WHERE id = ?",
+        [isApproved, userId],
+        (err, res) => {
+            if (err) {
+                result(err, null);
+                return;
+            }
+            if (res.affectedRows == 0) {
+                result({ kind: "not_found" }, null);
+                return;
+            }
+            result(null, { id: userId, isApproved: isApproved });
+        }
+    );
+};
 
 module.exports = User;

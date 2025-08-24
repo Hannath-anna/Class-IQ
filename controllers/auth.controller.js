@@ -1,5 +1,5 @@
 const User = require("../models/auth.model");
-const sendOtpEmail = require("../services/email.service.ts");
+const {sendOtpEmail} = require("../services/email.service.ts");
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 
@@ -24,7 +24,7 @@ exports.sendOtp = (req, res) => {
         isApproved: false
     });    
 
-    User.create(userData, (err, data) => {
+    User.create(userData, async (err, data) => {
         // Handle database errors immediately
         if (err) {
             if (err.kind === "duplicate_entry") {
@@ -37,15 +37,19 @@ exports.sendOtp = (req, res) => {
         }
 
         // Only if the database operation was successful, send the OTP email.
-        sendOtpEmail(req.body.email, otp).then(emailSent => {
-            if (!emailSent) {
-                // The user is in the DB, but we couldn't email them. Let them know.
-                return res.status(500).send({ message: "Your account is ready, but we failed to send the verification email. Please try again later." });
-            }
-            
-            // If both DB and email are successful, send the final success response.
-            res.status(200).send({ userData, message: "OTP has been sent to your email. Please check your inbox." });
-        });
+        try {
+            await sendOtpEmail(req.body.email, otp).then(emailSent => {
+                if (!emailSent) {
+                    // The user is in the DB, but we couldn't email them. Let them know.
+                    return res.status(500).send({ message: "Your account is ready, but we failed to send the verification email. Please try again later." });
+                }
+                
+                // If both DB and email are successful, send the final success response.
+                res.status(200).send({ userData, message: "OTP has been sent to your email. Please check your inbox." });
+            });
+        } catch (error) {
+            res.status(500).send({ message: "Error while sending approval email." });
+       }
     });
 };
  

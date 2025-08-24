@@ -1,4 +1,5 @@
 const User = require("../models/auth.model");
+const {sendApprovalEmail} = require("../services/email.service.ts");
 
 exports.getAllUsers = (req, res) => {
     User.getAll((err, data) => {
@@ -32,5 +33,29 @@ exports.blockUser = (req, res) => {
         // Send a clear success message back to the admin frontend
         const action = isBlocked ? 'unblocked' : 'blocked';
         res.send({ message: `User was successfully ${action}.` });
+    });
+};
+
+exports.approveStudent = (req, res) => {
+    const userId = req.query.id;
+    if (!userId) {
+        return res.status(400).send({ message: "User ID is required." });
+    }
+
+    User.findById(userId, (err, user) => {
+        if (err || !user) {
+            return res.status(404).send({ message: `User with id ${userId} not found.` });
+        }
+        
+        // Now, approve the user
+        User.setApprovalStatus(userId, true, async (approveErr, data) => {
+            if (approveErr) {
+                return res.status(500).send({ message: "Error approving user." });
+            }
+
+            await sendApprovalEmail(user.email, user.fullname);
+
+            res.send({ message: `User was successfully approved.` });
+        });
     });
 };
