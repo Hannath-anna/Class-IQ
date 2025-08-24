@@ -230,4 +230,30 @@ User.getAll = (result) => {
     );
 };
 
+User.setBlockStatus = (id, isBlocked, result) => {
+    // We update the 'is_active' column in the 'users' table.
+    sql.query(
+        "UPDATE students SET isBlocked = ? WHERE id = ?",
+        [isBlocked, id],
+        (err, res) => {
+            if (err) {
+                console.log("error: ", err);
+                result(err, null);
+                return;
+            }
+
+            // Check if any row was actually updated.
+            if (res.affectedRows == 0) {
+                // No user found with that ID
+                result({ kind: "not_found" }, null);
+                return;
+            }
+
+            // Success
+            result(null, { id: id, isBlocked: isBlocked });
+        }
+    );
+};
+
+
 module.exports = User;

@@ -156,11 +156,3 @@ exports.resetPassword = (req, res) => {
     });
 };
 
-exports.getAllUsers = (req, res) => {
-    User.getAll((err, data) => {
-        if (err) {
-            return res.status(500).send({ message: "An error occurred while retrieving users." });
-        }
-        res.status(200).send(data);
-    });
-};

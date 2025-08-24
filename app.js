@@ -30,8 +30,10 @@ db.connect(error => {
   const courseRoutes = require("./router/course.router")
   app.use("/api/courses", courseRoutes)
 
+  const authRoutes = require("./router/auth.router.js");
+  app.use("/api/auth", authRoutes);
 
-  const userRoutes = require("./router/auth.router.js");
+  const userRoutes = require("./router/user.router");
   app.use("/api/users", userRoutes);
 
   const port = config.PORT;
