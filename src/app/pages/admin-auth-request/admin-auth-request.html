@@ -1,15 +1,44 @@
 <div class="container mx-auto p-4 md:p-8">
   <h1 class="text-3xl font-bold text-gray-800 mb-6">User Management</h1>
+  <div class="mb-6 p-4 bg-white rounded-lg shadow-md flex items-center gap-6">
+    <h3 class="font-bold text-lg">Filter by:</h3>
+    <div class="flex items-center gap-4">
+      <div>
+        <input type="radio" id="all" name="statusFilter" value="all" [checked]="activeFilter === 'all'" (change)="applyFilter('all')">
+        <label for="all" class="ml-2">All</label>
+      </div>
+      <div>
+        <input type="radio" id="approved" name="statusFilter" value="approved" [checked]="activeFilter === 'approved'" (change)="applyFilter('approved')">
+        <label for="approved" class="ml-2">Approved</label>
+      </div>
+      <div>
+        <input type="radio" id="pending" name="statusFilter" value="pending" [checked]="activeFilter === 'pending'" (change)="applyFilter('pending')">
+        <label for="pending" class="ml-2">Pending Approval</label>
+      </div>
+       <div>
+        <input type="radio" id="blocked" name="statusFilter" value="blocked" [checked]="activeFilter === 'blocked'" (change)="applyFilter('blocked')">
+        <label for="blocked" class="ml-2">Blocked</label>
+      </div>
+       <div>
+        <input type="radio" id="verified" name="statusFilter" value="verified" [checked]="activeFilter === 'verified'" (change)="applyFilter('verified')">
+        <label for="verified" class="ml-2">Verified</label>
+      </div>
+       <div>
+        <input type="radio" id="unverified" name="statusFilter" value="unverified" [checked]="activeFilter === 'unverified'" (change)="applyFilter('unverified')">
+        <label for="unverified" class="ml-2">Unverified</label>
+      </div>
+    </div>
+  </div>
 
   <div *ngIf="isLoading" class="text-center py-12">
     <p class="text-gray-500">Loading user data...</p>
   </div>
 
-  <div *ngIf="!isLoading && users.length === 0" class="text-center py-12 bg-white rounded-lg shadow">
+  <div *ngIf="!isLoading && filteredUsers.length === 0" class="text-center py-12 bg-white rounded-lg shadow">
     <p class="text-gray-500">No registered users found.</p>
   </div>
 
-  <div *ngIf="!isLoading && users.length > 0" class="overflow-x-auto bg-white rounded-lg shadow">
+  <div *ngIf="!isLoading && filteredUsers.length > 0" class="overflow-x-auto bg-white rounded-lg shadow">
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-gray-50">
         <tr>
@@ -21,7 +50,7 @@
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
-        <tr *ngFor="let user of users">
+        <tr *ngFor="let user of filteredUsers">
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="font-medium text-gray-900">{{ user.fullname }}</div>
             <div class="text-sm text-gray-500">ID: {{ user.id }}</div>

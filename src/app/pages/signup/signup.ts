@@ -20,6 +20,7 @@ export class Signup {
   otpForm: FormGroup;
   otpSent = false;
   isLoading = false;
+  email: string = "";
 
   courses: any = ['No Preference'];
 
@@ -93,6 +94,7 @@ export class Signup {
     this.backendService.sendOtp(formData).subscribe({
       next: (response: any) => {
         this.toastr.success(response.message || 'OTP sent successfully!', 'Check Your Email');
+        this.email = this.signupForm.value.email
         this.otpSent = true;
         this.isLoading = false;
         this.signupForm.reset();
@@ -114,7 +116,7 @@ export class Signup {
 
     this.isLoading = true;
     const verificationData = {
-      email: this.signupForm.value.email,
+      email: this.email,
       otp: this.otpForm.value.otp
     };
 

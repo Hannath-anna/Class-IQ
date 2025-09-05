@@ -1,11 +1,29 @@
 <section class="w-screen h-screen min-h-[680px] mx-auto max-w-[2000px] p-[2rem] overflow-scroll">
     <button class="fixed z-[19] p-6 button rounded-full bg-black text-white text-xl right-20 to-20 transition-all active:scale-95 hover:cursor-pointer" (click)="addClicked()">Add</button>
+    <div class="mb-6 p-4 bg-white rounded-lg shadow-md flex items-center gap-6">
+        <h3 class="font-bold text-lg">Filter by Status:</h3>
+        <div class="flex items-center gap-4">
+            <div>
+                <input type="radio" id="all" name="statusFilter" value="all" [checked]="activeFilter === 'all'" (change)="applyFilter('all')">
+                <label for="all" class="ml-2">All</label>
+            </div>
+            <div>
+                <input type="radio" id="active" name="statusFilter" value="active" [checked]="activeFilter === 'active'" (change)="applyFilter('active')">
+                <label for="active" class="ml-2">Active</label>
+            </div>
+            <div>
+                <input type="radio" id="blocked" name="statusFilter" value="blocked" [checked]="activeFilter === 'blocked'" (change)="applyFilter('blocked')">
+                <label for="blocked" class="ml-2">Blocked</label>
+            </div>
+        </div>
+    </div>
+
     <div *ngIf="loadingCourse" class="loading-overlay">
         <div class="spinner"></div>
     </div>
-    <div *ngIf="!loadingCourse && courses.length === 0" class="w-full h-full text-lg flex items-center justify-center p-[1rem]">No Data Found!</div>
-    <div *ngIf="!loadingCourse && courses.length > 0" class="w-full gap-5 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <div *ngFor="let course of courses" class="card w-full relative border/5 bg-black/5 rounded-2xl p-5 flex flex-col gap-5">
+    <div *ngIf="!loadingCourse && filteredCourses.length === 0" class="w-full h-full text-lg flex items-center justify-center p-[1rem]">No Data Found!</div>
+    <div *ngIf="!loadingCourse && filteredCourses.length > 0" class="w-full gap-5 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div *ngFor="let course of filteredCourses" class="card w-full relative border/5 bg-black/5 rounded-2xl p-5 flex flex-col gap-5">
             <button 
                 [ngClass]="{
                     'bg-green-500': !course.isBlocked,

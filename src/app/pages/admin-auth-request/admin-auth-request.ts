@@ -13,6 +13,8 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class AdminAuthRequest {
   users: any[] = [];
+  filteredUsers: any[] = [];
+  activeFilter: 'all' | 'approved' | 'pending' | 'blocked' | 'verified' | 'unverified' = 'all';
   isLoading = true;
   loadingActionIds = new Set<number>();
   constructor(private backendService: BackendService,private cdr: ChangeDetectorRef, private toastr: ToastrService) {}
@@ -21,14 +23,40 @@ export class AdminAuthRequest {
     this.backendService.getAllUsers().subscribe({
       next: (res) => {
         this.users = res;
+        this.applyFilter(this.activeFilter);
         this.isLoading = false;
         this.cdr.markForCheck()
       },
       error: (err) => {
         this.toastr.error(err.error.message || 'Failed to load users.');
+        this.isLoading = false;
         this.cdr.markForCheck()
       }
     })
+  }
+
+  applyFilter(filter: 'all' | 'approved' | 'pending' | 'blocked' | 'verified' | 'unverified'): void {
+    this.activeFilter = filter;
+    switch (filter) {
+      case 'approved':
+        this.filteredUsers = this.users.filter(user => user.isApproved);
+        break;
+      case 'pending':
+        this.filteredUsers = this.users.filter(user => !user.isApproved);
+        break;
+      case 'blocked':
+        this.filteredUsers = this.users.filter(user => user.isBlocked);
+        break;
+      case 'verified':
+        this.filteredUsers = this.users.filter(user => user.isVerified);
+        break;
+      case 'unverified':
+        this.filteredUsers = this.users.filter(user => !user.isVerified);
+        break;
+      default: 
+        this.filteredUsers = [...this.users];
+        break;
+    }
   }
 
   verifStudent(user: any): void {
@@ -37,6 +65,7 @@ export class AdminAuthRequest {
       next: (response) => {
         this.toastr.success(`Student "${user.email}" has been approved.`, 'Approval Successful');
         user.isApproved = 1; // MySQL BOOLEANs are often returned as 1 (true) or 0 (false).
+        this.applyFilter(this.activeFilter);
         this.loadingActionIds.delete(user.id);
         this.cdr.markForCheck()
       },
@@ -57,7 +86,7 @@ export class AdminAuthRequest {
         this.toastr.success(`User "${user.email}" was ${action}ed successfully.`, 'Update Successful');
         user.isBlocked = newStatus;
         this.loadingActionIds.delete(user.id);
-        
+        this.applyFilter(this.activeFilter);
         this.cdr.markForCheck()
       },
       error: (err) => {

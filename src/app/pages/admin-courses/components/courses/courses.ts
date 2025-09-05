@@ -19,6 +19,8 @@ export class Courses implements OnInit {
   courseForm: FormGroup;
   selectedFile: File | null = null;
   openModale = false;
+  filteredCourses: any = [];
+  activeFilter: 'all' | 'active' | 'blocked' = 'all'; 
 
   constructor(private backendService: BackendService, private fb: FormBuilder, private toastr: ToastrService, private cdr: ChangeDetectorRef) {
     this.courseForm = this.fb.group({
@@ -62,9 +64,20 @@ export class Courses implements OnInit {
   loadCourses() {
     this.loadingCourse = true;
     this.backendService.getCourses().subscribe({
-      next: (res) => { this.courses = res; this.loadingCourse = false; this.cdr.markForCheck()},
+      next: (res) => { this.courses = res; this.loadingCourse = false;this.applyFilter(this.activeFilter); this.cdr.markForCheck()},
       error: (err) => { this.toastr.error('Failed to load courses.', 'Load Error'); this.loadingCourse = false; this.cdr.markForCheck()}
     });
+  }
+
+  applyFilter(filter: 'all' | 'active' | 'blocked'): void {
+    this.activeFilter = filter;
+    if (filter === 'all') {
+      this.filteredCourses = [...this.courses];
+    } else if (filter === 'active') {
+      this.filteredCourses = this.courses.filter((course: any) => !course.isBlocked);
+    } else if (filter === 'blocked') {
+      this.filteredCourses = this.courses.filter((course: any) => course.isBlocked);
+    }
   }
 
   addClicked() {
@@ -132,6 +145,7 @@ export class Courses implements OnInit {
       next: (response) => {
         this.toastr.success(`Course "${course.course_name}" was ${action}ed!`, 'Update Successful');
         course.isBlocked = newStatus;
+        this.applyFilter(this.activeFilter);
         this.isBlocking = false;
         this.cdr.markForCheck()
       },
@@ -149,6 +163,7 @@ export class Courses implements OnInit {
           this.toastr.success(`Course "${course.course_name}" was deleted.`, 'Delete Successful');
           this.deletingCourseId = null;
           this.courses = this.courses.filter((c: any) => c.id !== course.id)
+          this.applyFilter(this.activeFilter);
           this.cdr.markForCheck()
         },
         error: (err) => { this.toastr.error('Failed to delete course.', 'Delete Failed'); this.deletingCourseId = null; this.cdr.markForCheck()}
@@ -184,11 +199,9 @@ export class Courses implements OnInit {
         next: (res) => {
           this.toastr.success('Course updated successfully!', 'Saved');
           this.isSubmitting = false;
-          this.courses = this.courses.map((course: any) =>
-            course.id === this.editingCourseId
-              ? { ...course, ...this.courseForm.value }
-              : course
-          );
+          const index = this.courses.findIndex((c: any) => c.id === this.editingCourseId);
+          if (index !== -1) this.courses[index] = res;
+          this.applyFilter(this.activeFilter);
           this.closeModal();
           this.cdr.markForCheck()
         },
