@@ -1,0 +1,95 @@
+<div class="container mx-auto p-4 md:p-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">User Management</h1>
+  <div class="mb-6 p-4 bg-white rounded-lg shadow-md flex items-center gap-6">
+    <h3 class="font-bold text-lg">Filter by:</h3>
+    <div class="flex items-center gap-4">
+      <div>
+        <input type="radio" id="all" name="statusFilter" value="all" [checked]="activeFilter === 'all'" (change)="applyFilter('all')">
+        <label for="all" class="ml-2">All</label>
+      </div>
+      <div>
+        <input type="radio" id="approved" name="statusFilter" value="approved" [checked]="activeFilter === 'approved'" (change)="applyFilter('approved')">
+        <label for="approved" class="ml-2">Approved</label>
+      </div>
+      <div>
+        <input type="radio" id="pending" name="statusFilter" value="pending" [checked]="activeFilter === 'pending'" (change)="applyFilter('pending')">
+        <label for="pending" class="ml-2">Pending Approval</label>
+      </div>
+       <div>
+        <input type="radio" id="blocked" name="statusFilter" value="blocked" [checked]="activeFilter === 'blocked'" (change)="applyFilter('blocked')">
+        <label for="blocked" class="ml-2">Blocked</label>
+      </div>
+       <div>
+        <input type="radio" id="verified" name="statusFilter" value="verified" [checked]="activeFilter === 'verified'" (change)="applyFilter('verified')">
+        <label for="verified" class="ml-2">Verified</label>
+      </div>
+       <div>
+        <input type="radio" id="unverified" name="statusFilter" value="unverified" [checked]="activeFilter === 'unverified'" (change)="applyFilter('unverified')">
+        <label for="unverified" class="ml-2">Unverified</label>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="text-center py-12">
+    <p class="text-gray-500">Loading user data...</p>
+  </div>
+
+  <div *ngIf="!isLoading && filteredUsers.length === 0" class="text-center py-12 bg-white rounded-lg shadow">
+    <p class="text-gray-500">No registered users found.</p>
+  </div>
+
+  <div *ngIf="!isLoading && filteredUsers.length > 0" class="overflow-x-auto bg-white rounded-lg shadow">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let user of filteredUsers">
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="font-medium text-gray-900">{{ user.fullname }}</div>
+            <div class="text-sm text-gray-500">ID: {{ user.id }}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm text-gray-900">{{ user.email }}</div>
+            <div class="text-sm text-gray-500">{{ user.phone || 'N/A' }}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span *ngIf="user.isVerified" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Verified</span>
+            <span *ngIf="!user.isVerified" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Not Verified</span>
+            <span *ngIf="user.isBlocked" class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Blocked</span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm text-gray-900">{{ user.course }}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+            <button *ngIf="!user.isApproved" (click)="verifStudent(user)" [disabled]="loadingActionIds.has(user.id)" 
+                    class="py-1 px-3 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50">
+                <ng-container *ngIf="loadingActionIds.has(user.id); else buttonText">
+                    <div class="spinner2"></div> 
+                </ng-container>
+
+                <ng-template #buttonText>
+                    Approve
+                </ng-template>
+            </button>
+            <button (click)="toggleBlockStudent(user)" [disabled]="loadingActionIds.has(user.id)" [ngClass]="{'bg-red-600 hover:bg-red-700': !user.isBlocked, 'bg-yellow-500 hover:bg-yellow-600': user.isBlocked}" class="py-1 px-3 border border-transparent rounded-md shadow-sm text-white disabled:opacity-50">
+                <ng-container *ngIf="loadingActionIds.has(user.id); else buttonText">
+                    <div class="spinner2"></div> 
+                </ng-container>
+
+                <ng-template #buttonText>
+                    {{ user.isBlocked ? 'Unblock' : 'Block' }}
+                </ng-template>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
