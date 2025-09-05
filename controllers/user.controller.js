@@ -55,7 +55,7 @@ exports.approveStudent = (req, res) => {
 
             await sendApprovalEmail(user.email, user.fullname);
 
-            res.send({ message: `User was successfully approved.` });
+            res.send({data, message: `User was successfully approved.` });
         });
     });
 };

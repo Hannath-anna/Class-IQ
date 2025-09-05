@@ -115,7 +115,7 @@ User.verifyOtp = (email, otp, result) => {
         }
 
         // Check if the OTP matches
-        if (user.otp !== parseInt(otp)) {
+        if (user.otp != parseInt(otp)) {
             return result({ kind: "invalid_otp", message: "The OTP you entered is incorrect." }, null);
         }
 
@@ -236,7 +236,7 @@ User.resetPasswordWithOtp = (email, otp, newPassword, result) => {
 
 User.getAll = (result) => {
     sql.query(
-        "SELECT id, fullname, email, phone, course, isVerified, isBlocked, createdAt FROM students ORDER BY createdAt DESC",
+        "SELECT id, fullname, email, phone, course, isVerified, isBlocked, isApproved, created_at FROM students ORDER BY created_at DESC",
         (err, res) => {
             if (err) {
                 console.error("Error fetching all users:", err);
