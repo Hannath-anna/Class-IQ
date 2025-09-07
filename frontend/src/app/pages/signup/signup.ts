@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, Input } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BackendService } from '../../../core/services/backend.service';
 import { ToastrService } from 'ngx-toastr';
@@ -16,6 +16,7 @@ import { Router, RouterModule } from '@angular/router';
   styleUrl: './signup.css'
 })
 export class Signup {
+  @Input() isFaculty!: boolean;
   signupForm: FormGroup;
   otpForm: FormGroup;
   otpSent = false;
@@ -117,12 +118,15 @@ export class Signup {
       otp: this.otpForm.value.otp
     };
 
-    this.backendService.verifyOtp(verificationData).subscribe({
+    const verificationObservable = this.isFaculty ? this.backendService.verifyAdminOtp(verificationData) : this.backendService.verifyOtp(verificationData);
+
+    verificationObservable.subscribe({
       next: (response: any) => {
         this.toastr.success('Account created successfully!', 'Welcome!');
         this.isLoading = false;
         this.otpSent = false;
         this.otpForm.reset();
+        this.email = '';
         this.cdr.markForCheck();
         this.router.navigate(['/login']);
       },
@@ -131,6 +135,35 @@ export class Signup {
         this.isLoading = false;
         this.otpSent = false;
         this.otpForm.reset();
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  onSubmitFaculty() {
+    if (this.signupForm.invalid) {
+      this.toastr.error('Please correct the errors in the form.', 'Invalid Form');
+      this.signupForm.markAllAsTouched();
+      return;
+    }
+    if (this.isLoading) return;
+    
+    this.isLoading = true;
+    const { course, ...facultyData } = this.signupForm.value; // Exclude the empty 'course' field
+
+    // You would create a new service method for this
+    this.backendService.sendFacultyOtp(facultyData).subscribe({
+      next: (response: any) => {
+        this.toastr.success(response.message || 'OTP sent successfully!', 'Check Your Email');
+        this.email = this.signupForm.value.email;
+        this.otpSent = true;
+        this.isLoading = false;
+        this.signupForm.reset();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.toastr.error(err.error.message || 'An unknown error occurred.', 'Signup Failed');
+        this.isLoading = false;
         this.cdr.markForCheck();
       }
     });

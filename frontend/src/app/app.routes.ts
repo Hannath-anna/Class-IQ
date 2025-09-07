@@ -6,7 +6,7 @@ export const routes: Routes = [
         loadComponent: () => import("./layout/admin-layout/admin-layout").then(c => c.AdminLayout),
         children: [
             {
-                path: "",
+                path: "profile",
                 loadComponent: () => import("./pages/student-profile/student-profile").then(c => c.StudentProfile)
             },
             {
@@ -28,3 +28,18 @@ export const routes: Routes = [
         loadComponent: () => import("./pages/signup/signup").then(c => c.Signup),
     }
 ];
+
+// export const routes: Routes = [
+//   // Student Signup Route
+//   { 
+//     path: 'signup', 
+//     component: Signup,
+//     data: { isFaculty: false } // Pass data to the component
+//   },
+//   // Faculty Signup Route
+//   { 
+//     path: 'faculty-signup', // Or whatever path you want
+//     component: Signup,
+//     data: { isFaculty: true } // Pass data to the component
+//   },
+// ];

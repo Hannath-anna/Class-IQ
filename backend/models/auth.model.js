@@ -110,7 +110,7 @@ User.verifyOtp = (email, otp, result) => {
 
         const user = users[0];
 
-        if (user.otpExpiresAt < Date.now()) {
+        if (new Date(user.otpExpiresAt) < Date.now()) {
             return result({ kind: "otp_expired", message: "The OTP you entered is expired, Please try again." }, null);
         }
 
