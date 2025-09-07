@@ -1,0 +1,164 @@
+<div class="container mx-auto p-4 sm:p-8">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header Section -->
+    <div *ngIf="!isLoading && profile" class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+      <!-- Cover Section -->
+      <div class="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 h-32 sm:h-40 relative">
+        <div class="absolute inset-0 bg-white/80 bg-opacity-20"></div>
+
+        <!-- Edit Button -->
+        <button *ngIf="!isEditMode"
+                (click)="toggleEditMode()"
+                class="absolute top-4 right-4 px-4 py-2 bg-white text-black bg-opacity-20 backdrop-blur-sm rounded-lg hover:bg-opacity-30 transition-all duration-300 flex items-center gap-2">
+          Edit Profile
+        </button>
+      </div>
+
+      <!-- Profile Info Section -->
+      <div class="relative px-6 pb-6">
+        <div class="flex flex-col sm:flex-row items-start sm:items-end -mt-16 sm:-mt-20">
+          <!-- Profile Picture -->
+          <div class="relative group">
+            <img [src]="profile?.profile_picture_url ? backendUrl + profile.profile_picture_url : 'images/blank.jpg'" 
+                 alt="Profile Picture" 
+                 class="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-lg object-cover">
+            <!-- Change Picture Overlay -->
+            <label *ngIf="isEditMode" for="profileImage"
+                   class="hidden group-hover:flex absolute inset-0 bg-black/30 rounded-full items-center justify-center cursor-pointer">
+            </label>
+            <input type="file" id="profileImage" class="hidden" (change)="onFileChange($event)">
+          </div>
+
+          <!-- Basic Info -->
+          <div class="mt-4 sm:mt-0 sm:ml-6 flex-1">
+            <h1 class="text-2xl sm:text-3xl font-bold">{{ profile?.fullname || 'N/A' }}</h1>
+            <div class="flex flex-wrap gap-2 mt-3">
+              <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">Verified</span>
+              <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Active</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="text-center">
+      <div id="loadingState" class="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="mt-4 text-gray-600">Loading...</p>
+        </div>
+    </div>
+    </div>
+
+    <!-- No Data State -->
+    <div *ngIf="!isLoading && !profile" class="fixed inset-0 flex">
+        <div id="noDataState" class="container m-auto p-8">
+            <div class="max-w-md mx-auto text-center">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">No Data Found</h2>
+                    <p class="text-gray-600 mb-6">Try again or login again..!</p>
+                    <button onclick="loadProfile()" 
+                            class="px-6 py-2 bg-red-300 button rounded-lg hover:bg-red-400 transition-colors">
+                        Retry
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Content -->
+    <div *ngIf="!isLoading && profile" class="grid lg:grid-cols-3 gap-8">
+        <!-- Main Profile Info -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Personal Info Card -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-6">
+                Personal Information
+            </h2>
+
+            <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="space-y-4">
+                <!-- Full Name -->
+                <div>
+                <label class="block text-sm font-medium text-gray-500">Full Name</label>
+                <p *ngIf="!isEditMode" class="text-gray-900 font-medium">{{ profile.fullname }}</p>
+                <input *ngIf="isEditMode" type="text" formControlName="fullname" class="w-full p-2 border rounded mt-1">
+                </div>
+
+                <!-- Qualifications -->
+                <div>
+                <label class="block text-sm font-medium text-gray-500">Qualifications</label>
+                <p *ngIf="!isEditMode" class="text-gray-900">{{ profile.qualifications || 'N/A' }}</p>
+                <input *ngIf="isEditMode" type="text" formControlName="qualifications" class="w-full p-2 border rounded mt-1">
+                </div>
+
+                <!-- Address Info -->
+                <h3 class="text-xl font-semibold mt-6 mb-2">Address</h3>
+                <div formGroupName="address" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-500">Street</label>
+                    <p *ngIf="!isEditMode">{{ addressObject?.street || 'N/A' }}</p>
+                    <input *ngIf="isEditMode" type="text" formControlName="street" class="w-full p-2 border rounded mt-1">
+                </div>
+                <div class="grid sm:grid-cols-2 gap-4">
+                    <div>
+                    <label class="block text-sm font-medium text-gray-500">City</label>
+                    <p *ngIf="!isEditMode">{{ addressObject?.city || 'N/A' }}</p>
+                    <input *ngIf="isEditMode" type="text" formControlName="city" class="w-full p-2 border rounded mt-1">
+                    </div>
+                    <div>
+                    <label class="block text-sm font-medium text-gray-500">State</label>
+                    <p *ngIf="!isEditMode">{{ addressObject?.state || 'N/A' }}</p>
+                    <input *ngIf="isEditMode" type="text" formControlName="state" class="w-full p-2 border rounded mt-1">
+                    </div>
+                    <div>
+                    <label class="block text-sm font-medium text-gray-500">Post</label>
+                    <p *ngIf="!isEditMode">{{ addressObject?.post || 'N/A' }}</p>
+                    <input *ngIf="isEditMode" type="text" formControlName="post" class="w-full p-2 border rounded mt-1">
+                    </div>
+                    <div>
+                    <label class="block text-sm font-medium text-gray-500">Pin</label>
+                    <p *ngIf="!isEditMode">{{ addressObject?.pin || 'N/A' }}</p>
+                    <input *ngIf="isEditMode" type="text" formControlName="pin" class="w-full p-2 border rounded mt-1">
+                    </div>
+                </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div *ngIf="isEditMode" class="mt-8 flex gap-4">
+                <button type="button" (click)="cancelEdit()" class="button w-full p-3 bg-gray-200 rounded-lg hover:bg-gray-100 border border-gray-500 text-gray-700">
+                    Cancel
+                </button>
+                <button type="submit" [disabled]="profileForm.invalid || isSubmitting"
+                        class="w-full button p-3 bg-blue-400 text-white rounded-lg hover:bg-blue-400 disabled:bg-gray-400">
+                    {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
+                </button>
+                </div>
+            </form>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Contact Info</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <span class="text-gray-700">{{ profile?.phone || 'N/A' }}</span>
+                    </div>
+                    <div class="flex items-center gap-3 overflow-auto">
+                        <span class="text-gray-700">{{ profile?.email || 'N/A' }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Course Info</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3 overflow-auto">
+                        <span class="text-gray-700 ">{{ profile?.course || 'N/A' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>

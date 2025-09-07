@@ -48,15 +48,12 @@ export class Signup {
     this.backendService.getCourses().subscribe({
       next: (res) => {
         const filteredCourses = res.filter((course: any) => !course.isBlocked);
-        const courseNames = filteredCourses.map((course: any) => course.course_name);
-
-        this.courses = [
-          'No Preference',
-          ...courseNames
-        ];
+        this.courses = filteredCourses.map((course: any) => course.course_name);
+        this.cdr.detectChanges()
       },
       error: () => {
         this.toastr.error('Could not load courses. Please try again later.');
+        this.cdr.detectChanges()
       }
     })  
   }

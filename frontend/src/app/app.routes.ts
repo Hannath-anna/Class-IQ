@@ -7,6 +7,10 @@ export const routes: Routes = [
         children: [
             {
                 path: "",
+                loadComponent: () => import("./pages/student-profile/student-profile").then(c => c.StudentProfile)
+            },
+            {
+                path: "requests",
                 loadComponent: () => import("./pages/admin-auth-request/admin-auth-request").then(c => c.AdminAuthRequest)
             },
             {

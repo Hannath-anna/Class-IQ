@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { BackendService } from '../../../core/services/backend.service';
 import { ToastrService } from 'ngx-toastr';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -25,7 +26,7 @@ export class Login {
   forgotPasswordStep: 'enterEmail' | 'enterOtpAndPassword' = 'enterEmail';
   userEmailForReset = '';
 
-  constructor(private cdr: ChangeDetectorRef, private fb: FormBuilder, private backendService: BackendService, private toastr: ToastrService, private router: Router) {
+  constructor(private cdr: ChangeDetectorRef, private authService: AuthService, @Inject(PLATFORM_ID) private platformId: Object, private fb: FormBuilder, private backendService: BackendService, private toastr: ToastrService, private router: Router) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [
@@ -66,12 +67,12 @@ export class Login {
 
     this.backendService.login(formData).subscribe({
       next: (response: any) => {
-        localStorage.setItem('authToken', response.token);
         this.toastr.success('Welcome back!', 'Login Successful');
         this.isLoading = false;
         this.loginForm.reset();
+        this.authService.login(response);
         this.cdr.markForCheck();
-        // this.router.navigate(['/']);
+        this.router.navigate(['/']);
       },
       error: (err) => {
         this.toastr.error(err.error.message || 'An unknown error occurred.', 'Login Failed');

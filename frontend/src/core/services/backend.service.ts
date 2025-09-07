@@ -1,7 +1,8 @@
-import { Injectable } from "@angular/core";
+import { Inject, Injectable, PLATFORM_ID } from "@angular/core";
 import { environments } from "../../../environments/environment"
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable } from "rxjs";
+import { isPlatformBrowser } from "@angular/common";
 
 @Injectable({
     providedIn: "root"
@@ -59,12 +60,20 @@ export class BackendService {
     }
 
     blockStudent(id: any, isBlocked: boolean): Observable<any> {
-        const params = new HttpParams().set('id', id);  
+        const params = new HttpParams().set('id', id);
         return this.http.patch(`${this.apiUrl}/users/block`, {isBlocked}, {params});
     }
 
     verifyStudent(id: string) {
         const params = new HttpParams().set('id', id);
         return this.http.patch(`${this.apiUrl}/users/verify`, null, {params});
+    }
+
+    getProfile(studentid: any): Observable<any> {
+        return this.http.get(`${this.apiUrl}/profile?studentid=${studentid}`);
+    }
+
+    updateProfile(studentid: any, formData: FormData): Observable<any> {
+        return this.http.put(`${this.apiUrl}/profile?studentid=${studentid}`, formData);
     }
 }
