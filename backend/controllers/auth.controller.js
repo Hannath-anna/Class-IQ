@@ -109,9 +109,14 @@ exports.login = (req, res) => {
             { expiresIn: '4h' }
         );
 
+        console.log(data);
+        
         res.status(200).send({
             message: "Logged in successfully!",
             token: token,
+            studentId: data.id,
+            role: "student",
+            roleId: 3
         });
     });
 };

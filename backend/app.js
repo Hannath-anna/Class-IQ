@@ -25,19 +25,18 @@ db.connect(error => {
     process.exit(1);
   }
 
-  console.log("Successfully connected to the database.");
-
   const courseRoutes = require("./router/course.router")
   app.use("/api/courses", courseRoutes)
 
-  const authRoutes = require("./router/auth.router.js");
+  const authRoutes = require("./router/auth.router");
   app.use("/api/auth", authRoutes);
 
   const userRoutes = require("./router/user.router");
   app.use("/api/users", userRoutes);
 
+  const profileRoutes = require("./router/profile.router");
+  app.use("/api/profile", profileRoutes);
+
   const port = config.PORT;
-  app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
-  });
+  app.listen(port, () => console.log(`Server is running at http://localhost:${port}`));
 }); 
