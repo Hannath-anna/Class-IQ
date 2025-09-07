@@ -84,4 +84,8 @@ export class BackendService {
     verifyAdminOtp(data: {email: string, otp: number}) {
         return this.http.post(`${this.apiUrl}/admin/verify-otp`, data)
     }
+
+    adminLogin(loginData: FormData) {
+        return this.http.post(`${this.apiUrl}/admin/login`, loginData)
+    }
 }

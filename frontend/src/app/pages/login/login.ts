@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, Inject, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, Input, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { BackendService } from '../../../core/services/backend.service';
@@ -17,6 +17,7 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrl: './login.css'
 })
 export class Login {
+  @Input() isFaculty: boolean = true;
   loginForm: FormGroup;
   forgotPasswordForm: FormGroup;
   resetPasswordForm: FormGroup;
@@ -65,14 +66,21 @@ export class Login {
     this.isLoading = true;
     const formData = this.loginForm.value;
 
-    this.backendService.login(formData).subscribe({
+    const loginObservable = this.isFaculty ? this.backendService.adminLogin(formData) : this.backendService.login(formData)
+
+    loginObservable .subscribe({
       next: (response: any) => {
         this.toastr.success('Welcome back!', 'Login Successful');
         this.isLoading = false;
         this.loginForm.reset();
-        this.authService.login(response);
+        if (!this.isFaculty) {
+          this.authService.login(response);
+        } else {
+          this.authService.adminLogin(response)
+        }
+        const loginPath = this.isFaculty ? '/profile' : '/profile';
         this.cdr.markForCheck();
-        this.router.navigate(['/']);
+        this.router.navigate([loginPath]);
       },
       error: (err) => {
         this.toastr.error(err.error.message || 'An unknown error occurred.', 'Login Failed');

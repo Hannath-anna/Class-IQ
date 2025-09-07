@@ -72,6 +72,25 @@ Admin.create = async (adminData, result) => {
     }
 };
 
+Admin.findByEmail = (email, result) => {
+    // This function specifically queries the 'admins' table
+    sql.query("SELECT * FROM admins WHERE email = ?", [email], (err, res) => {
+        if (err) {
+            console.log("Database query error: ", err);
+            result(err, null);
+            return;
+        }
+
+        if (res.length) {
+            result(null, res[0]);
+            return;
+        }
+
+        // No user found with that email
+        result({ kind: "not_found" }, null);
+    });
+};
+
 // This function handles the OTP verification for admins/faculty.
 Admin.verifyOtp = (email, otp, result) => {
     sql.query("SELECT * FROM admins WHERE email = ?", [email], (err, admins) => {

@@ -16,7 +16,7 @@ import { Router, RouterModule } from '@angular/router';
   styleUrl: './signup.css'
 })
 export class Signup {
-  @Input() isFaculty!: boolean;
+  @Input() isFaculty: boolean = true;
   signupForm: FormGroup;
   otpForm: FormGroup;
   otpSent = false;

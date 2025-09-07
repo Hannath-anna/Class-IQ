@@ -25,9 +25,20 @@ export class AuthService {
     }
   }
 
+  adminLogin(response: any): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.logout();
+console.log(response);
+
+      localStorage.setItem('admin_authToken', response.token);
+      localStorage.setItem('admin_id', response.admin.admin_id);
+      localStorage.setItem('admin_roleId', response.admin.admin_roleId);
+    }
+  }
+
   logout(): void {
     if (isPlatformBrowser(this.platformId)) {
-      ['authToken', 'studentId', 'role', 'roleId'].forEach(key => {
+      ['authToken', 'studentId', 'role', 'roleId', 'admin_authToken', 'admin_studentId', 'admin_roleId'].forEach(key => {
         if (localStorage.getItem(key)) {
           localStorage.removeItem(key);
         }

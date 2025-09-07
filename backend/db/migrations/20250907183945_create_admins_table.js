@@ -10,7 +10,7 @@ exports.up = function(knex) {
     table.boolean("isVerified").notNullable().defaultTo(false);
     table.string("otp", 10).nullable();
     table.timestamp("otpExpiresAt").nullable();    
-    table.boolean("is_active").notNullable().defaultTo(true);
+    table.boolean("is_active").notNullable().defaultTo(false);
     table.boolean("isApproved").notNullable().defaultTo(false);
     table.timestamps(true, true);
   });
