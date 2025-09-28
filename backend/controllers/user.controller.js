@@ -1,9 +1,11 @@
-const User = require("../models/auth.model");
+const User = require("../services/auth.service.js");
 const {sendApprovalEmail} = require("../services/email.service.ts");
 
 exports.getAllUsers = (req, res) => {
     User.getAll((err, data) => {
         if (err) {
+            console.log(err);
+            
             return res.status(500).send({ message: "An error occurred while retrieving users." });
         }
         res.status(200).send(data);
@@ -36,26 +38,29 @@ exports.blockUser = (req, res) => {
     });
 };
 
-exports.approveStudent = (req, res) => {
+exports.approveStudent = async (req, res) => {
+  try {
     const userId = req.query.id;
     if (!userId) {
-        return res.status(400).send({ message: "User ID is required." });
+      return res.status(400).send({ message: "User ID is required." });
     }
 
-    User.findById(userId, (err, user) => {
-        if (err || !user) {
-            return res.status(404).send({ message: `User with id ${userId} not found.` });
-        }
-        
-        // Now, approve the user
-        User.setApprovalStatus(userId, true, async (approveErr, data) => {
-            if (approveErr) {
-                return res.status(500).send({ message: "Error approving user." });
-            }
+    // Call service to approve student
+    const student = await User.setApprovalStatus(userId, true);
 
-            await sendApprovalEmail(user.email, user.fullname);
+    // Send email
+    await sendApprovalEmail(student.email, student.fullname);
 
-            res.send({data, message: `User was successfully approved.` });
-        });
+    res.send({
+      data: student,
+      message: "User was successfully approved."
     });
+
+  } catch (error) {
+    if (error.kind === "not_found") {
+      return res.status(404).send({ message: `User with id ${req.query.id} not found.` });
+    }
+    console.error("Error approving user:", error);
+    res.status(500).send({ message: "Error approving user." });
+  }
 };

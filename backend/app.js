@@ -8,6 +8,7 @@ const path = require('path');
 const app = express()
 
 app.use(cors());
+// to convert fornt end form values into readble object format
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
