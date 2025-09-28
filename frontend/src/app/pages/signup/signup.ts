@@ -3,7 +3,7 @@ import { ChangeDetectorRef, Component, Input } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BackendService } from '../../../core/services/backend.service';
 import { ToastrService } from 'ngx-toastr';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-signup',
@@ -16,7 +16,7 @@ import { Router, RouterModule } from '@angular/router';
   styleUrl: './signup.css'
 })
 export class Signup {
-  @Input() isFaculty: boolean = true;
+  isFaculty: boolean = false;
   signupForm: FormGroup;
   otpForm: FormGroup;
   otpSent = false;
@@ -25,12 +25,12 @@ export class Signup {
 
   courses: any = ['No Preference'];
 
-  constructor(private cdr: ChangeDetectorRef, private fb: FormBuilder, private backendService: BackendService, private toastr: ToastrService, private router: Router) {
+  constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef, private fb: FormBuilder, private backendService: BackendService, private toastr: ToastrService, private router: Router) {
     this.signupForm = this.fb.group({
       fullname: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required, Validators.pattern(/^\+?[\d\s\-\(\)]+$/)]],
-      course: ['', [Validators.required]],
+      courseId: [''],
       password: ['', [
         Validators.required,
         Validators.minLength(8),
@@ -46,17 +46,19 @@ export class Signup {
   }
 
   ngOnInit() {
-    this.backendService.getCourses().subscribe({
-      next: (res) => {
-        const filteredCourses = res.filter((course: any) => !course.isBlocked);
-        this.courses = filteredCourses.map((course: any) => course.course_name);
-        this.cdr.detectChanges()
-      },
-      error: () => {
-        this.toastr.error('Could not load courses. Please try again later.');
-        this.cdr.detectChanges()
+    this.route.data.subscribe(data => {
+      this.isFaculty = !!data['isFaculty'];
+    });
+
+    this.route.queryParamMap.subscribe(params => {
+      const courseId = params.get('id');
+      if (courseId) {
+        this.signupForm.patchValue({ courseId });
+      } else {
+        this.router.navigate(['courses']);
+        return;
       }
-    })  
+    }); 
   }
 
   passwordMatchValidator(control: AbstractControl): { [key: string]: any } | null {
@@ -85,6 +87,11 @@ export class Signup {
       return;
     }
     if (this.isLoading) return
+
+    if (!this.signupForm.value.courseId) {
+      this.router.navigate(['courses']);
+      return;
+    }
     
     this.isLoading = true;
     const formData = this.signupForm.value;    
@@ -128,7 +135,8 @@ export class Signup {
         this.otpForm.reset();
         this.email = '';
         this.cdr.markForCheck();
-        this.router.navigate(['/login']);
+        const loginPath = this.isFaculty ? 'faculty/login' : 'login'
+        this.router.navigate([loginPath]);
       },
       error: (err) => {
         this.toastr.error(err.error.message || 'Verification failed. Please try again.', 'Error');
@@ -149,7 +157,7 @@ export class Signup {
     if (this.isLoading) return;
     
     this.isLoading = true;
-    const { course, ...facultyData } = this.signupForm.value; // Exclude the empty 'course' field
+    const facultyData = this.signupForm.value; // Exclude the empty 'course' field
 
     // You would create a new service method for this
     this.backendService.sendFacultyOtp(facultyData).subscribe({

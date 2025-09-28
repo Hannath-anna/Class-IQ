@@ -14,18 +14,34 @@ export const routes: Routes = [
                 loadComponent: () => import("./pages/admin-auth-request/admin-auth-request").then(c => c.AdminAuthRequest)
             },
             {
-                path: "courses",
+                path: "course-list",
                 loadComponent: () => import("./pages/admin-courses/admin-courses").then(c => c.AdminCourses)
             },
         ]
     },
     {
+        path: "courses",
+        loadComponent: () => import("./pages/courses-list/courses-list").then(c => c.CoursesList)
+    },
+    {
         path: "login",
         loadComponent: () => import("./pages/login/login").then(c => c.Login),
+        data: { isFaculty: false }
+    },
+    {
+        path: "faculty/login",
+        loadComponent: () => import("./pages/login/login").then(c => c.Login),
+        data: { isFaculty: true }
     },
     {
         path: "signup",
         loadComponent: () => import("./pages/signup/signup").then(c => c.Signup),
+        data: { isFaculty: false }
+    },
+    {
+        path: "faculty/signup",
+        loadComponent: () => import("./pages/signup/signup").then(c => c.Signup),
+        data: { isFaculty: true }
     }
 ];
 

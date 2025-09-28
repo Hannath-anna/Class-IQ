@@ -1,8 +1,7 @@
-import { Inject, Injectable, PLATFORM_ID } from "@angular/core";
+import { Injectable } from "@angular/core";
 import { environments } from "../../../environments/environment"
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable } from "rxjs";
-import { isPlatformBrowser } from "@angular/common";
 
 @Injectable({
     providedIn: "root"
@@ -13,6 +12,10 @@ export class BackendService {
 
     getCourses(): Observable<any> {
         return this.http.get(`${this.apiUrl}/courses`);
+    }
+
+    getCourseInfo(id: any): Observable<any> {
+        return this.http.get(`${this.apiUrl}/courses/course?id=${id}`);
     }
 
     addCourse(courseData: FormData): Observable<any> {
@@ -74,6 +77,8 @@ export class BackendService {
     }
     
     updateProfile(studentid: any, formData: FormData): Observable<any> {
+        console.log(studentid);
+        
         return this.http.put(`${this.apiUrl}/profile?studentid=${studentid}`, formData);
     }
     

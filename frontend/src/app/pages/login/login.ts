@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Inject, Input, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BackendService } from '../../../core/services/backend.service';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../core/services/auth.service';
@@ -17,7 +17,7 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrl: './login.css'
 })
 export class Login {
-  @Input() isFaculty: boolean = true;
+  isFaculty: boolean = false;
   loginForm: FormGroup;
   forgotPasswordForm: FormGroup;
   resetPasswordForm: FormGroup;
@@ -27,7 +27,7 @@ export class Login {
   forgotPasswordStep: 'enterEmail' | 'enterOtpAndPassword' = 'enterEmail';
   userEmailForReset = '';
 
-  constructor(private cdr: ChangeDetectorRef, private authService: AuthService, @Inject(PLATFORM_ID) private platformId: Object, private fb: FormBuilder, private backendService: BackendService, private toastr: ToastrService, private router: Router) {
+  constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef, private authService: AuthService, @Inject(PLATFORM_ID) private platformId: Object, private fb: FormBuilder, private backendService: BackendService, private toastr: ToastrService, private router: Router) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [
@@ -56,6 +56,12 @@ export class Login {
     });
   }
 
+  ngOnInit() {
+    this.route.data.subscribe(data => {
+      this.isFaculty = !!data['isFaculty'];
+    });
+  }
+
   onSubmit() {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
@@ -68,7 +74,7 @@ export class Login {
 
     const loginObservable = this.isFaculty ? this.backendService.adminLogin(formData) : this.backendService.login(formData)
 
-    loginObservable .subscribe({
+    loginObservable.subscribe({
       next: (response: any) => {
         this.toastr.success('Welcome back!', 'Login Successful');
         this.isLoading = false;
@@ -83,6 +89,8 @@ export class Login {
         this.router.navigate([loginPath]);
       },
       error: (err) => {
+        console.log(err.error.message);
+        
         this.toastr.error(err.error.message || 'An unknown error occurred.', 'Login Failed');
         this.isLoading = false;
         this.cdr.markForCheck();

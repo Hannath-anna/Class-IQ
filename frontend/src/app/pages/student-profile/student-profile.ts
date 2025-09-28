@@ -13,6 +13,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 })
 export class StudentProfile {
   profile: any;
+  courseInfo: any;
   addressObject: any = {};
   profileForm: FormGroup;
   isLoading = false;
@@ -53,9 +54,10 @@ export class StudentProfile {
     this.backendService.getProfile(studentid).subscribe({
       next: (data) => {
         this.profile = data;
-        if (data.address && typeof data.address === 'string') {
+        this.getCourseInfo()
+        if (data.profile.address && typeof data.profile.address === 'string') {
             try {
-                this.addressObject = JSON.parse(data.address);
+              this.addressObject = JSON.parse(data.profile.address);
             } catch (e) {
                 console.log("Failed to parse address JSON", e);
                 this.addressObject = {};
@@ -75,22 +77,35 @@ export class StudentProfile {
     });
   }
 
+  getCourseInfo() {
+    this.backendService.getCourseInfo(this.profile.courseId).subscribe({
+      next: (data) => {
+        this.courseInfo = data;
+        this.cdr.markForCheck()
+      },
+      error: (err) => {
+        this.toastr.error('Failed to load profile data.');
+        this.cdr.markForCheck()
+      }
+    })
+  }
+
   populateForm(data: any): void {
     this.profileForm.patchValue({
       fullname: data.fullname,
       phone: data.phone,
-      qualifications: data.qualifications,
-      address: typeof data.address === 'string' ? JSON.parse(data.address) : data.address
+      qualifications: data.profile.qualifications,
+      address: typeof data.profile.address === 'string' ? JSON.parse(data.profile.address) : data.profile.address
     });
   }
 
   toggleEditMode(): void {
     this.isEditMode = true;
+    this.populateForm(this.profile);
   }
 
   cancelEdit(): void {
     this.isEditMode = false;
-    this.populateForm(this.profile);
     this.selectedFile = null;
   }
 
@@ -109,7 +124,7 @@ export class StudentProfile {
     }
 
     this.isSubmitting = true;
-    const formData = new FormData();
+    const formData = new FormData();    
 
     // Append file if selected
     if (this.selectedFile) {
@@ -120,7 +135,7 @@ export class StudentProfile {
     formData.append('qualifications', this.profileForm.value.qualifications);
     formData.append('address', JSON.stringify(this.profileForm.value.address));
 
-    this.backendService.updateProfile(this.profile.studentId, formData).subscribe({
+    this.backendService.updateProfile(this.profile.id, formData).subscribe({
       next: (response) => {
         this.toastr.success('Profile updated successfully!');
         this.profile = response;
