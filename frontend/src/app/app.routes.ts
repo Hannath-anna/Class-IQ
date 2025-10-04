@@ -7,7 +7,7 @@ export const routes: Routes = [
         children: [
             {
                 path: "profile",
-                loadComponent: () => import("./pages/student-profile/student-profile").then(c => c.StudentProfile)
+                loadComponent: () => import("./pages/student-profile/student-profile").then(c => c.StudentProfile),
             },
             {
                 path: "requests",
@@ -20,6 +20,10 @@ export const routes: Routes = [
         ]
     },
     {
+        path: "admin/profile",
+        loadComponent: () => import("./pages/admin-profile/admin-profile").then(c => c.AdminProfile),
+    },
+    {
         path: "courses",
         loadComponent: () => import("./pages/courses-list/courses-list").then(c => c.CoursesList)
     },
@@ -29,7 +33,7 @@ export const routes: Routes = [
         data: { isFaculty: false }
     },
     {
-        path: "faculty/login",
+        path: "admin/login",
         loadComponent: () => import("./pages/login/login").then(c => c.Login),
         data: { isFaculty: true }
     },
@@ -39,7 +43,7 @@ export const routes: Routes = [
         data: { isFaculty: false }
     },
     {
-        path: "faculty/signup",
+        path: "admin/signup",
         loadComponent: () => import("./pages/signup/signup").then(c => c.Signup),
         data: { isFaculty: true }
     }

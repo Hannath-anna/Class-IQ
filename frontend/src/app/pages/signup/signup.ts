@@ -135,7 +135,7 @@ export class Signup {
         this.otpForm.reset();
         this.email = '';
         this.cdr.markForCheck();
-        const loginPath = this.isFaculty ? 'faculty/login' : 'login'
+        const loginPath = this.isFaculty ? 'admin/login' : 'login'
         this.router.navigate([loginPath]);
       },
       error: (err) => {

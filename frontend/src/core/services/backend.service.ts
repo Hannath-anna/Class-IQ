@@ -77,8 +77,6 @@ export class BackendService {
     }
     
     updateProfile(studentid: any, formData: FormData): Observable<any> {
-        console.log(studentid);
-        
         return this.http.put(`${this.apiUrl}/profile?studentid=${studentid}`, formData);
     }
     
@@ -92,5 +90,13 @@ export class BackendService {
 
     adminLogin(loginData: FormData) {
         return this.http.post(`${this.apiUrl}/admin/login`, loginData)
+    }
+
+    getAdminProfile(adminid: any): Observable<any> {
+        return this.http.get(`${this.apiUrl}/admin/profile?adminid=${adminid}`);
+    }
+    
+    updateAdminProfile(adminid: any, formData: FormData): Observable<any> {
+        return this.http.put(`${this.apiUrl}/admin/profile?adminid=${adminid}`, formData);
     }
 }

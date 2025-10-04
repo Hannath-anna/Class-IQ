@@ -84,9 +84,9 @@ export class Login {
         } else {
           this.authService.adminLogin(response)
         }
-        const loginPath = this.isFaculty ? '/profile' : '/profile';
-        this.cdr.markForCheck();
+        const loginPath = this.isFaculty ? '/admin/profile' : '/profile';
         this.router.navigate([loginPath]);
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.log(err.error.message);

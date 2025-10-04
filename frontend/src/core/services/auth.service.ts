@@ -31,14 +31,14 @@ export class AuthService {
 console.log(response);
 
       localStorage.setItem('admin_authToken', response.token);
-      localStorage.setItem('admin_id', response.admin.admin_id);
-      localStorage.setItem('admin_roleId', response.admin.admin_roleId);
+      localStorage.setItem('adminId', response.admin.id);
+      localStorage.setItem('admin_roleId', response.admin.role_id);
     }
   }
 
   logout(): void {
     if (isPlatformBrowser(this.platformId)) {
-      ['authToken', 'studentId', 'role', 'roleId', 'admin_authToken', 'admin_studentId', 'admin_roleId'].forEach(key => {
+      ['authToken', 'studentId', 'role', 'roleId', 'admin_authToken', 'adminId', 'admin_roleId'].forEach(key => {
         if (localStorage.getItem(key)) {
           localStorage.removeItem(key);
         }

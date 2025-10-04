@@ -108,6 +108,6 @@ export class CoursesList {
   } 
 
   registerAsFaculty(course: Course) {
-    this.router.navigate(['faculty/signup'], { queryParams: { id: course.id } });
+    this.router.navigate(['admin/signup'], { queryParams: { id: course.id } });
   }
 }
