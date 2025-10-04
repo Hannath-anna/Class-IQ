@@ -32,8 +32,6 @@ exports.update = async (req, res) => {
         return res.status(400).send({ message: "Content can not be empty!" });
     }
 
-  if (!req.body) return res.status(400).send({ message: "Request body cannot be empty." });
-
   try {
     const studentData = { fullname: req.body.fullname };
     const profileData = {

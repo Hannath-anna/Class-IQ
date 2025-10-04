@@ -2,7 +2,6 @@ const db = require('../models/sequelize');
 const Admin = db.Admin;
 const bcrypt = require('bcrypt');
 
-const adminService = {};
 const Faculty = function(admin) {
     this.fullname = admin.fullname;
     this.email = admin.email;
@@ -63,4 +62,22 @@ Faculty.login = async (email, password) => {
   return admin;
 };
 
+Faculty.getAllAdmins = async (result) => {
+  try {
+    const admins = await Admin.findAll({
+      attributes: ['id', 'fullname', 'email', 'phone', 'isVerified', 'isBlocked', 'isApproved', 'createdAt'],
+      include: [
+        {
+          model: db.Course,
+          attributes: ['course_name']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    result(null, admins);
+  } catch (error) {
+    result(error, null);
+  }
+};
 module.exports = Faculty;
